@@ -3,14 +3,8 @@ import React, {useEffect, useRef} from 'react';
 import {ForceGraph2D} from 'react-force-graph';
 import * as d3 from "d3";
 
-const isLocal = true;
-
 const getEngagementEdge = () => {
-    if (isLocal) {
-        return "http://" + window.location.hostname + ":8900/"
-    } else {
-        return "__engagement_ux_standin__hostname__"
-    }
+    return "http://"+window.location.hostname+":8900/"
 }
 
 const engagement_edge = getEngagementEdge();

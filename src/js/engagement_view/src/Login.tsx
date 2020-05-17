@@ -3,14 +3,8 @@ import './LogIn.css';
 // import axios from 'axios';
 import {Field, Form, Formik} from "formik";
 
-const isLocal = true;
-
 const getEngagementEdge = () => {
-    if (isLocal) {
-        return window.location.host + ":8900/"
-    } else {
-        return "__engagement_ux_standin__hostname__"
-    }
+    return "http://"+window.location.hostname+":8900/"
 }
 
 const engagement_edge = getEngagementEdge();

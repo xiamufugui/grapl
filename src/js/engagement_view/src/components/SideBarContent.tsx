@@ -137,14 +137,8 @@ function ToggleLensTable({setLens}: any) {
     )
 }
 
-const isLocal = true;
-
 const getEngagementEdge = () => {
-    if (isLocal) {
-        return "http://" + window.location.hostname + ":8900/"
-    } else {
-        return "__engagement_ux_standin__hostname__"
-    }
+    return "http://"+window.location.hostname+":8900/"
 }
 
 const engagement_edge = getEngagementEdge();

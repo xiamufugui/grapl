@@ -1,13 +1,8 @@
 // Stylesheets
 console.log('entry.js init');
-const isLocal = true;
 
 const getEngagementEdge = () => {
-    if (isLocal) {
-        return window.location.host + ":8900/"
-    } else {
-        return "__engagement_ux_standin__hostname__"
-    }
+    return "http://"+window.location.hostname+":8900/"
 }
 
 const engagement_edge = getEngagementEdge();

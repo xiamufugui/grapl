@@ -1174,9 +1174,7 @@ const replaceInFile = (toModify, toReplace, replaceWith, outputFile) => {
 
         const replaced = data
             .split(toReplace)
-            .join(replaceWith)
-            .split("const isLocal = true;")
-            .join( "const isLocal = false;");
+            .join(replaceWith);
 
         if (outputFile) {
             fs.writeFile(outputFile, replaced, {encoding: 'utf8'}, (err) => {
@@ -1233,7 +1231,7 @@ class EngagementUx extends cdk.Stack {
             (gatewayId) => {
                 const edgeUrl = `https://${gatewayId}.execute-api.${AWS.config.region}.amazonaws.com/prod/`;
 
-                const toReplace = "__engagement_ux_standin__hostname__";
+                const toReplace = `"http://"+window.location.hostname+":8900/"`;
                 const replacement = `${edgeUrl}`;
 
                 console.log(__dirname)
