@@ -67,7 +67,6 @@ function SelectLens(props: SelectLensProps) {
                             props.setLens(props.lens)    
                         }
                 }>
-                    {/* #TODO: change color of lens name based on score */}
                     {props.lens_type + " :\t\t" + props.lens + "\t\t" + props.score}
                 </Button>
                 </TableCell>

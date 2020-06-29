@@ -20,7 +20,6 @@ export const BKDRHash = (str: string) => {
     return hash;
 };
 
-//# TODO: Add custom coloring for each node
 export const calcNodeRgb = (node: VizNode, colorHash: ColorHash) => {
     if (node.nodeType === 'Process') {
         return [31, 185, 128]

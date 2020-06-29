@@ -14,7 +14,6 @@ const mergeNodes = (x: Node, y: Node) => {
     return merged;
 };
 
-// #TODO: This algorithm is exponential, and doesn't have to be
 export const mergeGraphs = (curGraph: MergeGraphType, update: MergeGraphType): MergeGraphType | null => {
     // Merges two graphs into a new graph
     // returns 'null' if there are no updates to be made
@@ -46,8 +45,7 @@ export const mergeGraphs = (curGraph: MergeGraphType, update: MergeGraphType): M
             updated = true;
         }
     }
-// #TODO: console.log on link.source, check to see if it's an object or not. It should never be an object
-// this should only be a string / an int. At some point, it was getting sent as an object
+    
     for (const link of curGraph.links) {
         if (link) {
             const source = link.source.uid || link.source;

@@ -44,7 +44,6 @@ const RiskType = new GraphQLObjectType({
 // We also have to support dynamic types, which would map to plugins,
 // probably using the GraphQLJsonType
 
-// TODO: File is missing all of its properties
 const FileType = new GraphQLObjectType({
     name : 'File',
     fields : {
@@ -87,10 +86,6 @@ const IpConnections = new GraphQLObjectType({
     })
 })
 
-// TODO: Process is missing many properties and edges
-// 'fields' is a callback, so that we can declare ProcessType first, and then
-// reference it in 'children' later
-// This is called lazy evaluation, where we defer the execution of code until it is needed
 const ProcessType = new GraphQLObjectType({
     name : 'Process',
     fields : () => ({
@@ -211,7 +206,6 @@ const builtins = new Set([
     'ProcessOutboundConnections',
 ])
 
-// TODO: Handle the rest of the builtin types
 const resolveType = (data) => {
     if (data.dgraph_type[0] === 'Process') {
         return 'Process';
@@ -420,7 +414,6 @@ const RootQuery = new GraphQLObjectType({
                 console.log("Args", args)
                 const first = args.first;
                 const offset = args.offset; 
-                // #TODO: Make sure to validate that 'first' is under a specific limit, maybe 1000
                 const lenses =  await getLenses(getDgraphClient(), first, offset);
                 console.log('lenses', lenses);
                 return lenses

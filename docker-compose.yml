@@ -227,6 +227,7 @@ services:
     ports:
       - "8123:8123"
     environment:
+      - MG_ALPHAS=master_graph:9080
       - "IS_LOCAL=True"
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
     tty: true

@@ -115,7 +115,6 @@ export const UploadForm = () => {
                     <Button className="submitBtn"  type="submit"><CloudUploadIcon className = {classes.btn}/></Button>
                 </Form>
             </Formik>
-            <br />
             <Message status = {state.success}/>
         </div>
     )

@@ -30,8 +30,14 @@ export const deletePlugin = async ( pluginName: string ): Promise <boolean> => {
             body: JSON.stringify({plugins_to_delete: [pluginName]})
         }
     );
-    await res.json();
-    return true;
+    const body = await res.json();
+
+    if (body.success.Success === "Deleted Plugins"){
+        return true; 
+    } else { 
+        console.warn("Unable to Delete Plugin");
+        return false; 
+    }
 };
 
 export const uploadFilesToDgraph = async (payload: PluginPayload ): Promise<boolean> => {

@@ -245,8 +245,6 @@ const GraphDisplay = ({lensName, setCurNode}: GraphDisplayProps) => {
 
     const colorHash = new ColorHash({});
 
-    // #TODO: ADD ZOOM HANDLERS FOR MAX ZOOM IN/OUT
-
     return (
         <>
             <ForceGraph2D

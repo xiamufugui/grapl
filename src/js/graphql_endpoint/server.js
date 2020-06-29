@@ -15,7 +15,6 @@ if (!IS_LOCAL) {
     origin = process.env.UX_BUCKET;
 }
 
-// TODO: Move cors to its own module
 const corsOptions = {
     origin,
     allowedHeaders: "Content-Type, Cookie, Access-Control-Allow-Headers, Authorization, X-Requested-With",
