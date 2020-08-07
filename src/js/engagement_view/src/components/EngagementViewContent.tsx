@@ -168,7 +168,6 @@ const graphql_edge = getGraphQlEdge();
 
 const getLenses = async (first: number, offset: number) => {
     // console.log('fetching graph from', graphql_edge);
-
     const query = `
         {
             lenses(first: ${first}, offset: ${offset}) {
@@ -204,6 +203,40 @@ const getLenses = async (first: number, offset: number) => {
     return jres;
 };
 
+const getProcessByID = async(id: number) => {
+    const processQuery = `
+        process(process_id: ${id}) {
+            node_key, 
+            process_name, 
+            children,
+        }
+    `
+    console.log("PQ", processQuery)
+    const res = await 
+    fetch(`${graphql_edge}graphql`,
+        {
+            method: 'post',
+            body: JSON.stringify({query: processQuery}),
+            headers: {
+                'Content-Type': 'application/json',
+            }, 
+            credentials: 'include',
+        }
+    ) 
+    .then(res => res.json())
+    .then(res => {
+        if (res.errors) {
+            console.error("Query failed", res.errors);
+            res.data = {lenses: []};
+        }
+        return res
+    })
+    .then((res) => res.data);
+
+    const jres = await res;
+    console.log("jres", jres)
+}
+
 const NodeDetails = ({node}: NodeDetailsProps) => {
     return (
         <>
@@ -217,38 +250,45 @@ function ToggleNodeTable({curNode}: ToggleNodeTableProps) {
     const classes = useStyles();
     return (
         <>
-        <div>
-            <div className={classes.header}>
-                <b className={classes.title}><LensIcon className={classes.icon}/> NODE</b>
-                <Button
-                    className = {classes.button}
-                    onClick={
-                        () => { toggle(toggled => !toggled) }
-                    }> 	
-                    <ExpandMoreIcon className={classes.expand}/> 
-                </Button>
-            </div>
+            <div>
+                <div className = {classes.header} >
+                    <b className = {classes.title} > 
+                        <LensIcon className={classes.icon}/> NODE
+                    </b>
+                    <Button
+                        className = {classes.button}
+                        onClick = {
+                            () => { toggle(toggled => !toggled) }
+                        } > 	
+                        <ExpandMoreIcon className = {classes.expand} /> 
+                    </Button>
+                </div>
 
-            <div className="nodeToggle">
-                {
-                    toggled && curNode && 
-                        <>
-                            { <NodeDetails node={curNode}/> }
-                        </>
-                }
+                <div className="nodeToggle">
+                    {
+                        toggled && curNode && 
+                            <>
+                                { <NodeDetails node = {curNode} /> }
+                            </>
+                    }
+                </div>
             </div>
-        </div>
         </>
     )
 }
-
-
 
 export default function EngagementViewContent({setLens, curNode}: EngagementViewContentProps) {
     return (
         <>
             <ToggleLensTable setLens={setLens}/>
             <ToggleNodeTable curNode={curNode}/>
+            <Button
+                onClick = { 
+                    () => {
+                        getProcessByID(5824) 
+                    } 
+                }
+            > Details </Button>
         </>
     );
 }

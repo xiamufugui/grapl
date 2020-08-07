@@ -277,23 +277,24 @@ const getDgraphClient = () => {
 const getLenses = async (dg_client, first, offset) => {
     console.log("first offset", first, offset);
     const query = `
-    query all($a: int, $b: int)
-    {
-        all(func: type(Lens), first: $a, offset: $b, orderdesc: score)
+        query all($a: int, $b: int)
         {
-            lens_name: lens,
-            score,
-            node_key,
-            uid,
-            dgraph_type: dgraph.type,
-            lens_type,
-            scope {
-                uid,
+            all(func: type(Lens), first: $a, offset: $b, orderdesc: score)
+            {
+                lens_name: lens,
+                score,
                 node_key,
+                uid,
                 dgraph_type: dgraph.type,
+                lens_type,
+                scope {
+                    uid,
+                    node_key,
+                    dgraph_type: dgraph.type,
+                }
             }
         }
-    }`;
+    `;
 
     const txn = dg_client.newTxn();
     try {
@@ -414,6 +415,97 @@ const inLensScope = async (dg_client, nodeUid, lensUid) => {
     }
 }
 
+
+class VarAllocator {
+    constructor() {
+        // Map from predicate_name to var
+        this.vars = new Map();
+        this.varTypes = new Map();
+        this.nextVar = '$a';
+    }
+
+    alloc = (predValue, predType) => {
+        if (this.vars[predValue]) {
+            return this.vars[predValue];
+        }
+
+        this.vars[predValue] = this.incrVar();
+
+        this.varTypes[predType] = this.nextVar;
+        
+        return this.vars[predValue];
+    }
+
+    incrVar = () => {
+        if (this.nextVar.slice(-1) === 'z') {
+            this.nextVar = this.nextVar + 'a'
+        } else {
+            const intVar = this.nextVar.slice(-1).charCodeAt(0);
+            this.nextVar = String.fromCharCode(intVar + 1) 
+        }
+
+        return this.nextVar;
+    }
+}
+
+
+const generateFilter = (varAlloc) => {
+    const filters = [];
+    for (const entry of varAlloc.vars.entries()) {
+        filters.push(`eq(${entry[0]}, ${entry[1]})`)
+    }
+    return filters.join(" AND ")
+}
+
+
+const varTypeList = (varAlloc) => {
+    const typedPairs = [];
+    for (const entry of varAlloc.vars.entries()) {
+        typedPairs.push(`${entry[0]}:${entry[1]}`)
+    }
+
+    return typedPairs.join(", ")
+}
+
+const reverseMap = (map) => {
+    const output = {};
+    for (const entry of map.entries()) {
+        output[entry[1]] = entry[0];
+    }
+    return output
+}
+
+const getProcess = async (dg_client, filters) => {
+    const varAlloc = new VarAllocator();
+    varAlloc(filters.pid, 'int');
+    varAlloc(filters.processName, 'string');
+
+    const varTypes = varTypeList(varAlloc);
+    const filter = generateFilter(varAlloc);
+    const varList = Array.from(varAlloc.vars.keys()).join(", ") 
+    const query = `
+    query process(${varTypes})
+    {
+        process(func: type(Process))
+
+        @filter(
+            ${filter}
+        )
+
+        {
+            ${varList}
+        }
+    }`;
+    const txn = dg_client.newTxn();
+    try {
+        const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
+        return res.getJson()['process'];
+    } finally {
+        await txn.discard();
+    }
+}
+
+
 const handleLensScope = async (parent, args) => {
     const dg_client = getDgraphClient();
 
@@ -507,6 +599,11 @@ const handleLensScope = async (parent, args) => {
     return lens
 
 }
+
+const ProcessQuery = new GraphQLObjectType({
+    name: 'ProcessQuery',
+    fields: 'process'
+})
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType', 
