@@ -56,6 +56,10 @@ const middleware = [cors(corsDelegate), validateJwt];
 app.options('*', cors(corsDelegate));
 app.use('/graphql', middleware, graphqlHTTP({
     schema: schema,
+}));
+
+app.use('/graphiql', graphqlHTTP({
+    schema: schema,
     graphiql: IS_LOCAL !== null
 }));
 
@@ -69,5 +73,4 @@ if (IS_LOCAL) {
     exports.handler = (event, context) => {
         awsServerlessExpress.proxy(server, event, context)
     }
-
 }

@@ -1,269 +1,44 @@
+const { // custom types
+    BaseNode, 
+    LensNodeType, 
+    RiskType, 
+    FileType, 
+    IpConnections, 
+    ProcessType, 
+    NetworkConnection, 
+    IpPort, 
+    IpAddressType, 
+    AssetType, 
+    ProcessOutboundConnections, 
+    ProcessInboundConnections, 
+    builtins, 
+    PluginType, 
+    GraplEntityType
+} = require('../modules/API/types.js');
+
 const dgraph = require("dgraph-js");
 const grpc = require("grpc");
 const { GraphQLJSONObject } = require('graphql-type-json');
-
 const { 
     GraphQLObjectType, 
     GraphQLInt, 
     GraphQLString, 
     GraphQLList, 
+    GraphQLBoolean,
     GraphQLSchema, 
     GraphQLUnionType, 
     GraphQLNonNull
 }  = require('graphql');
 
-const { GraphQLBoolean } = require("graphql");
-
-const BaseNode = {
-    uid: {type: GraphQLInt},
-    node_key: {type: GraphQLString}, 
-    dgraph_type: {type: GraphQLList(GraphQLString)},
-}
-
-const LensNodeType = new GraphQLObjectType({
-    name: "LensNode", 
-    fields: () => ({
-        ...BaseNode,
-        lens_name: {type: GraphQLString}, 
-        score: {type: GraphQLInt}, 
-        scope: {type: GraphQLList(GraplEntityType)},
-        lens_type: {type: GraphQLString}, 
-    })
-})
-
-const RiskType = new GraphQLObjectType({
-    name: 'Risk',
-    fields: {
-        ...BaseNode,
-        analyzer_name: {type: GraphQLString}, 
-        risk_score: {type: GraphQLInt},
-    }
-})
-
-// We have to support every type in grapl_analyzerlib/schemas
-// We also have to support dynamic types, which would map to plugins,
-// probably using the GraphQLJsonType
-
-// TODO: File is missing all of its properties
-const FileType = new GraphQLObjectType({
-    name : 'File',
-    fields : {
-        ...BaseNode,
-        file_name: {type: GraphQLString},
-        file_type: {type: GraphQLString},
-        file_extension: {type: GraphQLString},
-        file_mime_type: {type: GraphQLString},
-        file_size: {type: GraphQLInt},
-        file_version: {type: GraphQLString}, 
-        file_description: {type: GraphQLString},
-        file_product: {type: GraphQLString},
-        file_company: {type: GraphQLString}, 
-        file_directory: {type: GraphQLString},
-        file_inode: {type: GraphQLInt},
-        file_hard_links: {type: GraphQLString}, 
-        signed: {type: GraphQLBoolean},
-        signed_status: {type: GraphQLString}, 
-        md5_hash: {type: GraphQLString},
-        sha1_hash: {type: GraphQLString},
-        sha256_hash: {type: GraphQLString},
-        risks: {type: GraphQLList(RiskType)},
-        file_path: {type: GraphQLString},
-    }
-});
-
-const IpConnections = new GraphQLObjectType({
-    name: 'IpConnections',
-    fields: () => ({
-        ...BaseNode,
-        risks: {type: GraphQLList(RiskType)},
-        src_ip_addr: {type: GraphQLString},
-        src_port: {type: GraphQLString},
-        dst_ip_addr: {type: GraphQLString},
-        dst_port: {type: GraphQLString},
-        created_timestamp: {type: GraphQLInt},
-        terminated_timestamp: {type: GraphQLInt},
-        last_seen_timestamp: {type: GraphQLInt},
-        inbound_ip_connection_to: {type: IpAddressType},
-    })
-})
-
-// TODO: Process is missing many properties and edges
-// 'fields' is a callback, so that we can declare ProcessType first, and then
-// reference it in 'children' later
-// This is called lazy evaluation, where we defer the execution of code until it is needed
-const ProcessType = new GraphQLObjectType({
-    name : 'Process',
-    fields : () => ({
-        ...BaseNode,
-        created_timestamp: {type: GraphQLInt},
-        image_name: {type: GraphQLString},
-        process_name: {type: GraphQLString},
-        arguments: {type: GraphQLString}, 
-        children: {
-            type: GraphQLList(ProcessType) 
-        },
-        bin_file: {type: FileType},
-        created_file: {type: FileType},
-        deleted_files: {type:FileType},
-        read_files: {type: GraphQLList(FileType)},
-        wrote_files: {type: GraphQLList(FileType)},
-        created_connections: {type: GraphQLList(ProcessOutboundConnections)},
-        inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
-        process_id: {type: GraphQLInt},
-        risks: {type: GraphQLList(RiskType)},
-    })
-});
-const NetworkConnection = new GraphQLObjectType({
-    name: 'NetworkConnection',
-    fields: () => ({
-        src_ip_address: {type: GraphQLString}, 
-        src_port: {type: GraphQLString}, 
-        dst_ip_address: {type: GraphQLString}, 
-        dst_port: {type: GraphQLString}, 
-        created_timestamp: {type: GraphQLInt}, 
-        terminated_timestamp: {type: GraphQLInt},
-        last_seen_timestamp: {type: GraphQLInt},
-        inbound_network_connection_to: {type: GraphQLList(IpPort)},
-    })
-}) 
-
-const IpPort = new GraphQLObjectType({
-    name: 'IpPort',
-    fields: {
-        ...BaseNode,
-        ip_address: {type: GraphQLString},
-        protocol: {type: GraphQLString},
-        port: {type: GraphQLInt}, 
-        first_seen_timestamp: {type: GraphQLInt}, 
-        last_seen_timestamp: {type: GraphQLInt}, 
-        network_connections: {type: GraphQLList(NetworkConnection)},
-    }
-})
-
-const IpAddressType = new GraphQLObjectType({
-    name : 'IpAddress',
-    fields : {
-        ...BaseNode,
-        risks: {type: GraphQLList(RiskType)},
-        ip_address: {type: GraphQLString}
-    }
-});
-
-const AssetType = new GraphQLObjectType({
-    name : 'Asset',
-    fields : {
-        ...BaseNode,
-        risks: {type: GraphQLList(RiskType)},
-        hostname: {type: GraphQLString},
-        asset_ip: {type: GraphQLList(IpAddressType)},
-        asset_processes: {type: GraphQLList(ProcessType)}, 
-        files_on_asset: {type: GraphQLList(FileType)},
-    }
-});
-
-
-const ProcessInboundConnections = new GraphQLObjectType ({
-    name: 'ProcessInboundConnections',
-    fields: {
-        ...BaseNode,
-        ip_address: {type: GraphQLString},
-        protocol: {type: GraphQLString}, 
-        created_timestamp: {type: GraphQLInt}, 
-        terminated_timestamp: {type: GraphQLInt},
-        last_seen_timestamp: {type: GraphQLInt},
-        port: {type: GraphQLInt},
-        bound_port: {type: GraphQLList(IpPort)},
-        bound_ip: {type: GraphQLList(IpAddressType)},
-    }
-})
-
-const ProcessOutboundConnections = new GraphQLObjectType ({
-    name: 'ProcessOutboundConnections',
-    fields: {
-        ...BaseNode,
-        ip_address: {type: GraphQLString},
-        protocol: {type: GraphQLString},
-        created_timestamp: {type: GraphQLInt}, 
-        terminated_timestamp: {type: GraphQLInt},
-        last_seen_timestamp: {type: GraphQLInt},
-        port: {type: GraphQLInt},
-        connected_over: {type: GraphQLList(IpPort)},
-        connected_to: {type: GraphQLList(IpPort)},
-    }
-})
-
-const PluginType = new GraphQLObjectType({
-    name: 'PluginType',
-    fields: {
-        predicates: { type: GraphQLJSONObject },
-    }
-})
-
-
-const builtins = new Set([
-    'Process',
-    'File',
-    'IpAddress',
-    'Asset',
-    'Risk',
-    'IpConnections',
-    'ProcessInboundConnections',
-    'ProcessOutboundConnections',
-])
-
 // TODO: Handle the rest of the builtin types
-const resolveType = (data) => {
-    if (data.dgraph_type[0] === 'Process') {
-        return 'Process';
-    }
-
-    if (data.dgraph_type[0] === 'File') {
-        return 'File';
-    }
-
-    if (data.dgraph_type[0] === 'IpAddress') {
-        return 'IpAddress';
-    }
-    
-    if (data.dgraph_type[0] === 'Asset') {
-        return 'Asset';
-    }
-
-    if (data.dgraph_type[0] === 'Risk'){
-        return 'Risk';
-    }
-
-    if (data.dgraph_type[0] === 'IpConnections'){
-        return 'IpConnections';
-    }
-
-    if (data.dgraph_type[0] === 'ProcessInboundConnections'){
-        return 'ProcessInboundConnections';
-    }
-
-    if (data.dgraph_type[0] === 'ProcessOutboundConnections'){
-        return 'ProcessOutboundConnections';
-    }
-    
-    return 'PluginType'
-};
-
-// | FileType, ProcessType, IpAddressType, AssetType, RiskType, IpConnections, ProcessInboundConnections, ProcessOutboundConnections
-const GraplEntityType = new GraphQLUnionType({
-    name: 'GraplEntityType',
-    types: [ PluginType, FileType, ProcessType, AssetType ],
-    resolveType: resolveType
-});
 
 const get_random = (list) => {
     return list[Math.floor((Math.random()*list.length))];
 }
 
-
 const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
 
 const getDgraphClient = () => {
-
     const clientStub = new dgraph.DgraphClientStub(
         // addr: optional, default: "localhost:9080"
         mg_alpha,
@@ -273,6 +48,7 @@ const getDgraphClient = () => {
 
     return new dgraph.DgraphClient(clientStub);
 }
+
 // return lens
 const getLenses = async (dg_client, first, offset) => {
     console.log("first offset", first, offset);
@@ -297,6 +73,7 @@ const getLenses = async (dg_client, first, offset) => {
     `;
 
     const txn = dg_client.newTxn();
+
     try {
         const res = await txn.queryWithVars(query, {'$a': first.toString(), '$b': offset.toString()});
         return res.getJson()['all'];
@@ -476,13 +253,17 @@ const reverseMap = (map) => {
 }
 
 const getProcess = async (dg_client, filters) => {
+    console.log("DGClient", dg_client)
+    console.log("Filters", filters)
+
     const varAlloc = new VarAllocator();
     varAlloc(filters.pid, 'int');
     varAlloc(filters.processName, 'string');
 
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
-    const varList = Array.from(varAlloc.vars.keys()).join(", ") 
+    const varList = Array.from(varAlloc.vars.keys()).join(", ");
+
     const query = `
     query process(${varTypes})
     {
@@ -496,7 +277,9 @@ const getProcess = async (dg_client, filters) => {
             ${varList}
         }
     }`;
+
     const txn = dg_client.newTxn();
+
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
         return res.getJson()['process'];
@@ -553,14 +336,12 @@ const handleLensScope = async (parent, args) => {
                     if(!builtins.has(neighbor.dgraph_type[0])) {
                         const tmpNode = {...neighbor};
                         // Object.keys(node).forEach(function(key) { delete node[key]; });
-
                         neighbor.predicates = tmpNode;
                     }
                     node[maybeNeighborProp] = neighbor
                 }
             }
         }
-
     }
 
     for (const node of lens["scope"]) {
@@ -589,21 +370,14 @@ const handleLensScope = async (parent, args) => {
             //         delete node[key];
             //     }
             // });
-
             node.predicates = tmpNode;
         }
     }
-
 
     lens.uid = parseInt(lens.uid, 16);
     return lens
 
 }
-
-const ProcessQuery = new GraphQLObjectType({
-    name: 'ProcessQuery',
-    fields: 'process'
-})
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType', 
@@ -641,11 +415,26 @@ const RootQuery = new GraphQLObjectType({
                     throw e;
                 }
             }
-        }, 
+        },
+        process:  {
+            type: ProcessType, 
+            args: {
+                pid: {type: GraphQLInt}, 
+                process_name: {type: GraphQLString}
+            }, 
+            resolve: async (parent, args) => {
+                try{
+                    const process = await getProcess(parent, args); 
+                    console.log("Process Found", process)
+                    return process; 
+                } catch (e) {
+                    console.log("e", e)
+                }
+            }
+        }
         
     }
 })
-
 
 module.exports = new GraphQLSchema({
     query: RootQuery
