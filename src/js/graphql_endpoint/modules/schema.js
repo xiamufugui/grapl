@@ -257,8 +257,8 @@ const getProcess = async (dg_client, filters) => {
     console.log("Filters", filters)
 
     const varAlloc = new VarAllocator();
-    varAlloc(filters.pid, 'int');
-    varAlloc(filters.processName, 'string');
+    varAlloc.alloc(filters.pid, 'int');
+    varAlloc.alloc(filters.processName, 'string');
 
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
