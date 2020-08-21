@@ -211,7 +211,6 @@ const getProcessByID = async(id: number) => {
             children,
         }
     `
-    console.log("PQ", processQuery)
     const res = await 
     fetch(`${graphql_edge}graphql`,
         {
@@ -225,6 +224,7 @@ const getProcessByID = async(id: number) => {
     ) 
     .then(res => res.json())
     .then(res => {
+        console.log("res", res)
         if (res.errors) {
             console.error("Query failed", res.errors);
             res.data = {lenses: []};
