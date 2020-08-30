@@ -2,36 +2,37 @@ use log::info;
 
 use serde_derive::Deserialize;
 
-use derive_dynamic_node::{DynamicNode, GraplStaticId};
-use graph_descriptions::graph_description::*;
-use graph_descriptions::graph_description::*;
+use derive_dynamic_node::{DynamicNode, GraplStaticId, ModelPlugin};
+use grapl_graph_descriptions::graph_description::*;
 
-fn read_log() -> &'static [u8] {
-    unimplemented!()
+fn read_log() -> String {
+    String::from(
+        r#"{
+            "arn": "arn:aws:ec2:us-west-2:111122223333:instance/i-00000002",
+            "imageId": "ami-99999999",
+            "instanceId": "i-00000002",
+            "instanceType": "t2.micro",
+            "launchTime": 1583191153000
+    }"#,
+    )
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct InstanceDetails {
-    #[serde(rename = "arn")]
     arn: String,
-    #[serde(rename = "imageId")]
     image_id: String,
-    #[serde(rename = "instanceId")]
     instance_id: String,
-    #[serde(rename = "instanceState")]
-    instance_state: String,
-    #[serde(rename = "instanceType")]
     instance_type: String,
-    #[serde(rename = "launchTime")]
     launch_time: u64,
 }
 
-#[derive(DynamicNode, GraplStaticId)]
+#[derive(DynamicNode, GraplStaticId, ModelPlugin)]
 pub struct AwsEc2Instance {
     #[grapl(static_id)]
-    arn: String,
+    pub arn: String,
     #[grapl(static_id)]
-    launch_time: u64,
+    pub launch_time: u64,
 }
 
 impl IAwsEc2InstanceNode for AwsEc2InstanceNode {
@@ -46,10 +47,11 @@ impl IAwsEc2InstanceNode for AwsEc2InstanceNode {
     }
 }
 
+#[allow(dead_code)]
 fn main() {
     let raw_guard_duty_alert = read_log();
 
-    let log: InstanceDetails = serde_json::from_slice(raw_guard_duty_alert).unwrap();
+    let log: InstanceDetails = serde_json::from_str(&raw_guard_duty_alert).unwrap();
 
     let mut ec2 = AwsEc2InstanceNode::new(AwsEc2InstanceNode::static_strategy(), log.launch_time);
     ec2.with_arn(log.arn).with_launch_time(log.launch_time);
