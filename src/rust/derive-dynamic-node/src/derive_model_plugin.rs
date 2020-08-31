@@ -26,7 +26,11 @@ pub fn name_and_py_ty_str(field: &Field) -> Option<(String, String)> {
     }
 }
 
-pub fn format_py_schema(name: &str, fields: Vec<(String, String)>) -> String {
+pub fn format_node_path(name: &str) -> String {
+    format!("nodes/{}_node.py", name.to_string().to_snake_case())
+}
+
+pub fn format_py_node_schema(name: &str, fields: Vec<(String, String)>) -> String {
     let mut properties = "".to_string();
     for (field_name, field_type) in fields {
         let property_def = format!(
@@ -41,7 +45,9 @@ pub fn format_py_schema(name: &str, fields: Vec<(String, String)>) -> String {
     format!(
         r#"class {name}NodeSchema(EntitySchema):
     def __init__(self):
-        from model_plugins.nodes.{name_snake}_node import {name}View
+        from model_plugins.{{plugin_name}}.nodes.{name_snake}_node import (
+            {name}View,
+        )
 
         super({name}NodeSchema, self).__init__(
             properties={{
@@ -53,6 +59,8 @@ pub fn format_py_schema(name: &str, fields: Vec<(String, String)>) -> String {
     @staticmethod
     def self_type() -> str:
         return "{name}"
+
+
 "#,
         name = name,
         name_snake = name.to_snake_case(),
@@ -74,6 +82,7 @@ SelfV = TypeVar("SelfV", bound="{node_name}View")
 {query}
 {view}
 
+from model_plugins.{{plugin_name}}.schemas import {node_name}NodeSchema
 {node_name}NodeSchema().init_reverse()
 "#,
         node_name = name,
@@ -99,7 +108,7 @@ fn format_py_node_query(node_name: &str, field_names: Vec<(String, String)>) -> 
 class {node_name}Query(EntityQuery[SelfV, SelfQ]):
     def __init__(self) -> None:
         super({node_name}Query, self).__init__()
-    {field_defs}
+{field_defs}
     @classmethod
     def node_schema(cls) -> "{node_name}NodeSchema":
         return {node_name}NodeSchema()
@@ -112,6 +121,7 @@ class {node_name}Query(EntityQuery[SelfV, SelfQ]):
 fn format_py_node_view(node_name: &str, fields: Vec<(String, String)>) -> String {
     let mut field_param_defs = "".to_string();
     let mut field_inits = "".to_string();
+    let mut get_methods = "".to_string();
     for (field_name, field_type) in fields {
         field_param_defs.push_str(
             format!(
@@ -129,6 +139,9 @@ fn format_py_node_view(node_name: &str, fields: Vec<(String, String)>) -> String
             )
             .as_str(),
         );
+
+        get_methods
+            .push_str(format_py_view_field(field_name.as_str(), field_type.as_str()).as_str());
     }
     format!(
         r#"
@@ -146,10 +159,15 @@ class {node_name}View(EntityView[SelfV, SelfQ]):
         )
 
 {field_inits}
+{get_methods}
+    @classmethod
+    def node_schema(cls) -> "{node_name}NodeSchema":
+        return {node_name}NodeSchema()
     "#,
         node_name = node_name,
         field_param_defs = field_param_defs,
-        field_inits = field_inits
+        field_inits = field_inits,
+        get_methods = get_methods,
     )
 }
 
@@ -159,6 +177,7 @@ fn format_py_query_str_field(field_name: &str) -> String {
     @with_str_prop("{field_name}")
     def with_{field_name}(
         self: "SelfQ",
+        *,
         eq: Optional[StrCmp] = None,
         contains: Optional[StrCmp] = None,
         ends_with: Optional[StrCmp] = None,
@@ -188,5 +207,16 @@ fn format_py_query_int_field(field_name: &str) -> String {
         pass
 "#,
         field_name = field_name
+    )
+}
+
+fn format_py_view_field(field_name: &str, field_type: &str) -> String {
+    format!(
+        r#"
+    def get_{field_name}(self, cached=True) -> Optional[{field_type}]:
+        return self.get_{field_type}("{field_name}", cached=cached)
+"#,
+        field_name = field_name,
+        field_type = field_type,
     )
 }

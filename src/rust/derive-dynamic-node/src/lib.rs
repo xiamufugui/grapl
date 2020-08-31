@@ -41,17 +41,22 @@ pub fn derive_python_model(input: TokenStream) -> TokenStream {
 
     let py_def =
         derive_model_plugin::format_py_node(struct_name_string.as_str(), field_strs.clone());
-
-    let py_schema = derive_model_plugin::format_py_schema(struct_name_string.as_str(), field_strs);
+    let py_node_schema =
+        derive_model_plugin::format_py_node_schema(struct_name_string.as_str(), field_strs);
+    let node_path = derive_model_plugin::format_node_path(struct_name_string.as_str());
 
     quote!(
         impl #struct_name {
-            pub fn derive_node() -> String {
-                #py_def .to_string()
+            pub fn derive_node(plugin_name: &str) -> String {
+                str::replace(#py_def , "{plugin_name}", plugin_name)
             }
 
-            pub fn derive_schema() -> String {
-                #py_schema .to_string()
+            pub fn derive_schema(plugin_name: &str) -> String {
+                str::replace(#py_node_schema , "{plugin_name}", plugin_name)
+            }
+
+            pub fn get_node_path() -> String {
+                #node_path .to_string()
             }
         }
     )
