@@ -51,14 +51,18 @@ const getDgraphClient = () => {
 
 // return lens
 const getLenses = async (dg_client, first, offset) => {
-    console.log("first offset", first, offset);
+    // console.log("first offset", first, offset);
     const query = `
         query all($a: int, $b: int)
         {
-            all(func: type(Lens), first: $a, offset: $b, orderdesc: score)
-            {
-                lens_name: lens,
-                score,
+            lens_name,
+            score,
+            node_key,
+            uid,
+            dgraph_type: dgraph.type,
+            lens_type,
+            scope {
+                uid,
                 node_key,
                 uid,
                 dgraph_type: dgraph.type,
@@ -87,9 +91,9 @@ const getLensByName = async (dg_client, lensName) => {
     const query = `
     query all($a: string, $b: first, $c: offset)
         {
-            all(func: eq(lens, $a), first: 1)
+            all(func: eq(lens_name, $a), first: 1)
             {
-                lens_name: lens,
+                lens_name,
                 score,
                 node_key,
                 uid,
@@ -118,6 +122,8 @@ const getNeighborsFromNode = async (dg_client, nodeUid) => {
     {
         all(func: uid($a), first: 1)
         {
+            uid,
+            dgraph_type
             expand(_all_) {
                 uid,
                 dgraph_type: dgraph.type,
@@ -297,8 +303,11 @@ const handleLensScope = async (parent, args) => {
     const lens = await getLensByName(dg_client, lens_name);
 
     lens["scope"] = lens["scope"] || [];
+    console.log(lens)
 
     for (const node of lens["scope"]) {
+        node.dgraph_type = node.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
+
         // node.uid = parseInt(node.uid, 16);
         if(!node.dgraph_type){
             console.warn("No DGraph Type", node)
@@ -316,6 +325,9 @@ const handleLensScope = async (parent, args) => {
                 const neighbors = maybeNeighbor;
 
                 for (const neighbor of neighbors) {
+                    if (!neighbor.dgraph_type) {continue}
+                    neighbor.dgraph_type = neighbor.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
+
                     const isInScope = await inLensScope(dg_client, neighbor["uid"], lens["uid"]);
                     neighbor.uid = parseInt(neighbor.uid, 16);
                     if (isInScope) {
@@ -329,6 +341,7 @@ const handleLensScope = async (parent, args) => {
             }
             else if (typeof maybeNeighbor === 'object' && maybeNeighbor.uid) {
                 const neighbor = maybeNeighbor;
+                neighbor.dgraph_type = neighbor.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
 
                 const isInScope = await inLensScope(dg_client, neighbor["uid"], lens["uid"]);
                 neighbor.uid = parseInt(neighbor.uid, 16);
@@ -345,6 +358,8 @@ const handleLensScope = async (parent, args) => {
     }
 
     for (const node of lens["scope"]) {
+        node.dgraph_type = node.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
+
         try {
             let nodeUid = node['uid'];
             if (typeof nodeUid === 'number') {
@@ -353,6 +368,8 @@ const handleLensScope = async (parent, args) => {
             const risks = await getRisksFromNode(dg_client, nodeUid);
             if (risks) {
                 for (const risk of risks) {
+                    risk['dgraph_type'] = risk['dgraph_type'].filter((t) => (t !== 'Base' && t !== 'Entity'))
+
                     risk['uid'] = parseInt(risk['uid'], 16)
                 }
                 node['risks'] = risks;
@@ -365,13 +382,12 @@ const handleLensScope = async (parent, args) => {
         console.log("Node", node)
         if(!builtins.has(node.dgraph_type[0])) {
             const tmpNode = {...node};
-            // Object.keys(node).forEach(function(key) {
-            //     if (Object.prototype.hasOwnProperty.call(node, key)) {
-            //         delete node[key];
-            //     }
-            // });
             node.predicates = tmpNode;
         }
+    }
+
+    for (const node of lens["scope"]) {
+        node.dgraph_type = node.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
     }
 
     lens.uid = parseInt(lens.uid, 16);
