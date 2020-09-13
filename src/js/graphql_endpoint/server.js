@@ -31,7 +31,7 @@ const corsDelegate = (req, callback) => {
     };
 
     if(IS_LOCAL){
-        console.log("Running Locally, CORS disabled")
+        // console.log("Running Locally, CORS disabled")
         corsOptions = {...corsOptions, origin: true}
         callback(null, corsOptions);
         return; 
@@ -54,17 +54,16 @@ const corsDelegate = (req, callback) => {
 const middleware = [cors(corsDelegate), validateJwt];
 
 app.options('*', cors(corsDelegate));
+
 app.use('/graphql', middleware, graphqlHTTP({
     schema: schema,
 }));
 
-app.use('/graphiql', graphqlHTTP({
-    schema: schema,
-    graphiql: IS_LOCAL !== null
-}));
-
-
 if (IS_LOCAL) {
+    app.use('/graphiql', graphqlHTTP({
+        schema: schema,
+        graphiql: true,
+    }));  
     app.listen(PORT, function () {
         console.log("GraphQL Server started on Port " + PORT);
     });

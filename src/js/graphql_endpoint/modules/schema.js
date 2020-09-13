@@ -30,12 +30,11 @@ const {
     GraphQLNonNull
 }  = require('graphql');
 
-// TODO: Handle the rest of the builtin types
-
 const get_random = (list) => {
     return list[Math.floor((Math.random()*list.length))];
 }
 
+console.log("mgalpha$", process.env)
 const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
 
 const getDgraphClient = () => {
@@ -53,7 +52,9 @@ const getDgraphClient = () => {
 const getLenses = async (dg_client, first, offset) => {
     // console.log("first offset", first, offset);
     const query = `
-        query all($a: int, $b: int)
+    query all($a: int, $b: int)
+    {
+        all(func: type(Lens), first: $a, offset: $b, orderdesc: score)
         {
             lens_name,
             score,
@@ -64,17 +65,10 @@ const getLenses = async (dg_client, first, offset) => {
             scope {
                 uid,
                 node_key,
-                uid,
                 dgraph_type: dgraph.type,
-                lens_type,
-                scope {
-                    uid,
-                    node_key,
-                    dgraph_type: dgraph.type,
-                }
             }
         }
-    `;
+    }`;
 
     const txn = dg_client.newTxn();
 
@@ -268,8 +262,14 @@ const getProcess = async (dg_client, filters) => {
 
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
-    const varList = Array.from(varAlloc.vars.keys()).join(", ");
-
+    const varListArray = Array.from(varAlloc.vars.keys());
+    if (varListArray.indexOf('uid') === -1) {
+        varListArray.push('uid');
+    }
+    if (varListArray.indexOf('node_key') === -1) {
+        varListArray.push('node_key');
+    }
+    const varList = varListArray.join(", ");
     const query = `
     query process(${varTypes})
     {
@@ -433,14 +433,14 @@ const RootQuery = new GraphQLObjectType({
             }
         },
         process:  {
-            type: ProcessType, 
+            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(ProcessType))), 
             args: {
                 pid: {type: GraphQLInt}, 
                 process_name: {type: GraphQLString}
             }, 
             resolve: async (parent, args) => {
                 try{
-                    const process = await getProcess(parent, args); 
+                    const process = await getProcess(getDgraphClient(), args); 
                     console.log("Process Found", process)
                     return process; 
                 } catch (e) {

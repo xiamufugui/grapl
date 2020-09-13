@@ -49,7 +49,6 @@ const defaultToggleLensTableState = (): ToggleLensTableState => {
     }
 }
 
-
 const pagedTable = (
     state: PaginationState, 
     page: number, 
@@ -104,9 +103,11 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
     const handleChangePage = (event: React.MouseEvent<HTMLButtonElement, MouseEvent> | null, page: number) => {
         setPage(page);
     }
+
     const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         console.log("Handle Row Event", event)
         setRowsPerPage(parseInt(event.target.value, 10));
@@ -116,7 +117,7 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
     useEffect( () => {
         const interval = setInterval(
             () => {
-            console.log("Fetching lenses");
+            // console.log("Fetching lenses");
             getLenses(state.first, state.offset)
                 .then((response) => {
                     if (response.lenses && response.lenses !== state.lenses) {
@@ -167,7 +168,7 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
 const graphql_edge = getGraphQlEdge();
 
 const getLenses = async (first: number, offset: number) => {
-    // console.log('fetching graph from', graphql_edge);
+    console.log('fetching graph from', first, offset, graphql_edge);
     const query = `
         {
             lenses(first: ${first}, offset: ${offset}) {
@@ -193,8 +194,10 @@ const getLenses = async (first: number, offset: number) => {
         .then(res => {
             if (res.errors) {
                 console.error("lenses failed", res.errors);
+                console.log("res.data", res.data)
                 res.data = {lenses: []};
             }
+            console.log("res.data", res.data)
             return res
         })
         .then((res) => res.data);

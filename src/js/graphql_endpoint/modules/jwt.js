@@ -1,9 +1,17 @@
 const jwt = require('jsonwebtoken');
 const AWS = require('aws-sdk')
 
-const IS_LOCAL = (process.env.IS_LOCAL == 'True') || null;  // get this from environment
-const JWT_SECRET_ID = process.env.JWT_SECRET_ID;  // get this from environment
+const IS_LOCAL = (process.env.IS_LOCAL === 'True') || null;
+const UNSAFE_TLS = (process.env.UNSAFE_TLS == 'True') || null;
+const JWT_SECRET_ID = process.env.JWT_SECRET_ID;
+const secrets_manager_endpoint = process.env.SECRETS_MANAGER_ENDPOINT;
 
+// UNSAFE_TLS is sometimes necessary when developing local grapl
+// This should only ever be set when IS_LOCAL is also set
+if (IS_LOCAL===true && UNSAFE_TLS===true) {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
+}
+console.log(IS_LOCAL, secrets_manager_endpoint);
 // Acts as a local cache of the secret so we don't have to refetch it every time
 let JWT_SECRET = "";
 
@@ -13,7 +21,7 @@ const secretsmanager = new AWS.SecretsManager({
     region: IS_LOCAL ? 'us-east-1' : undefined,
     accessKeyId: IS_LOCAL ? 'dummy_cred_aws_access_key_id' : undefined,
     secretAccessKey: IS_LOCAL ? 'dummy_cred_aws_secret_access_key' : undefined,
-    endpoint: IS_LOCAL ? 'http://secretsmanager.us-east-1.amazonaws.com:4566': undefined,
+    endpoint: IS_LOCAL ? secrets_manager_endpoint: undefined,
 });
 
 const fetchJwtSecret = async () => {
@@ -77,6 +85,7 @@ const validateJwt = async (req, res, next) => {
     if (await verifyToken(encoded_jwt) !== null) {
         next() 
     } else {
+        console.warn('Failed to verify token ', headers)
         return res.sendStatus(403)
     }
 }
