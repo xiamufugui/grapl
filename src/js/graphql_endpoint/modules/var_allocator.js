@@ -1,4 +1,3 @@
-
 class VarAllocator {
     constructor() {
         // Map from predicate_name to var
@@ -56,4 +55,11 @@ const reverseMap = (map) => {
         output[entry[1]] = entry[0];
     }
     return output
+}
+
+module.exports = {
+    VarAllocator,
+    generateFilter,
+    varTypeList,
+    reverseMap
 }

@@ -1,4 +1,9 @@
-const { VarAllocator } = require('../var_allocator.js')
+const { 
+    VarAllocator,
+    generateFilter,
+    varTypeList,
+    reverseMap
+} = require('../var_allocator.js')
 
 const getChildren = async (dg_client, parentUid, childrenFilters) => {
     const varAlloc = new VarAllocator();

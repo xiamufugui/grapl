@@ -1,5 +1,6 @@
 const { GraphQLJSONObject } = require('graphql-type-json');
-const { getChildren }  = require('../node_types/process.js')
+const { getChildren }  = require('../node_types/process.js');
+const { getDgraphClient } = require('../dgraph_client.js');
 
 const { 
     GraphQLObjectType, 

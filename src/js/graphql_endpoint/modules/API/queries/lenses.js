@@ -1,0 +1,101 @@
+const getLenses = async (dg_client, first, offset) => {
+    // console.log("first offset", first, offset);
+    const query = `
+        query all($a: int, $b: int)
+        {
+            all(func: type(Lens), first: $a, offset: $b, orderdesc: score)
+            {
+                lens_name,
+                score,
+                node_key,
+                uid,
+                dgraph_type: dgraph.type,
+                lens_type,
+                scope {
+                    uid,
+                    node_key,
+                    dgraph_type: dgraph.type,
+                }
+            }
+        }
+    `;
+
+    const txn = dg_client.newTxn();
+
+    try {
+        const res = await txn.queryWithVars(
+            query, 
+            {'$a': first.toString(), 
+            '$b': offset.toString()}
+        );
+
+        return res.getJson()['all'];
+    } finally {
+        await txn.discard();
+    }
+}
+
+// return lens
+const getLensByName = async (dg_client, lensName) => {
+    const query = `
+    query all($a: string, $b: first, $c: offset)
+        {
+            all(func: eq(lens_name, $a), first: 1)
+            {
+                lens_name,
+                score,
+                node_key,
+                uid,
+                dgraph_type: dgraph.type,
+                lens_type,
+                scope @filter(has(node_key)) {
+                    uid,
+                    dgraph_type: dgraph.type,
+                    expand(_all_)
+                }
+            }
+        }
+    `;
+
+    const txn = dg_client.newTxn();
+    
+    try {
+        const res = await txn.queryWithVars(query, {'$a': lensName});
+        return res.getJson()['all'][0];
+    } finally {
+        await txn.discard();
+    }
+}
+
+const inLensScope = async (dg_client, nodeUid, lensUid) => {
+
+    const query = `
+    query all($a: string, $b: string)
+    {
+        all(func: uid($b)) @cascade
+        {
+            uid,
+            scope @filter(uid($a)) {
+                uid,
+            }
+        }
+    }`;
+
+    const txn = dg_client.newTxn();
+    try {
+        const res = await txn.queryWithVars(query, {
+            '$a': nodeUid, '$b': lensUid
+        });
+        const json_res = res.getJson();
+        return json_res['all'].length !== 0;
+    } finally {
+        await txn.discard();
+    }
+}
+
+
+module.exports = {
+    getLenses,
+    getLensByName,
+    inLensScope
+}
