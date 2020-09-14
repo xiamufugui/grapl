@@ -1,3 +1,14 @@
+const { 
+    GraphQLObjectType, 
+    GraphQLInt, 
+    GraphQLString, 
+    GraphQLList, 
+    GraphQLBoolean,
+    GraphQLSchema, 
+    GraphQLUnionType, 
+    GraphQLNonNull
+}  = require('graphql');
+
 const { // custom types
     BaseNode, 
     LensNodeType, 
@@ -18,23 +29,11 @@ const { // custom types
 
 const dgraph = require("dgraph-js");
 const grpc = require("grpc");
-const { GraphQLJSONObject } = require('graphql-type-json');
-const { 
-    GraphQLObjectType, 
-    GraphQLInt, 
-    GraphQLString, 
-    GraphQLList, 
-    GraphQLBoolean,
-    GraphQLSchema, 
-    GraphQLUnionType, 
-    GraphQLNonNull
-}  = require('graphql');
 
 const get_random = (list) => {
     return list[Math.floor((Math.random()*list.length))];
 }
 
-console.log("mgalpha$", process.env)
 const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
 
 const getDgraphClient = () => {
@@ -409,12 +408,13 @@ const RootQuery = new GraphQLObjectType({
                 }
             },
             resolve: async (parent, args) => {
-                console.log("Args", args)
                 const first = args.first;
                 const offset = args.offset; 
                 // #TODO: Make sure to validate that 'first' is under a specific limit, maybe 1000
                 const lenses =  await getLenses(getDgraphClient(), first, offset);
+                
                 console.log('lenses', lenses);
+                
                 return lenses
             } 
         },

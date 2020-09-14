@@ -1,13 +1,13 @@
 const { GraphQLJSONObject } = require('graphql-type-json');
+const { getChildren }  = require('../node_types/process.js')
+
 const { 
     GraphQLObjectType, 
     GraphQLInt, 
     GraphQLString, 
     GraphQLList, 
     GraphQLBoolean,
-    GraphQLSchema, 
     GraphQLUnionType, 
-    GraphQLNonNull
 }  = require('graphql');
 
 const BaseNode = {
@@ -26,6 +26,43 @@ const LensNodeType = new GraphQLObjectType({
         lens_type: {type: GraphQLString}, 
     })
 })
+
+const ProcessType = new GraphQLObjectType({
+    name : 'Process',
+    fields : () => ({
+        ...BaseNode,
+        created_timestamp: {type: GraphQLInt},
+        image_name: {type: GraphQLString},
+        process_name: {type: GraphQLString},
+        arguments: {type: GraphQLString}, 
+        children: {
+            type: GraphQLList(ProcessType),
+            args: {
+                pid: {type: GraphQLInt}, 
+                process_name: {type: GraphQLString}
+            }, 
+            resolve: async (parent, args) => {
+                console.log('parent is, ', parent);
+                try{
+                    const children = await getChildren(getDgraphClient(), parent.uid, args); 
+                    console.log("Process Found", children)
+                    return children; 
+                } catch (e) {
+                    console.log("e", e)
+                }
+            }
+        },
+        bin_file: {type: FileType},
+        created_file: {type: FileType},
+        deleted_files: {type:FileType},
+        read_files: {type: GraphQLList(FileType)},
+        wrote_files: {type: GraphQLList(FileType)},
+        created_connections: {type: GraphQLList(ProcessOutboundConnections)},
+        inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
+        process_id: {type: GraphQLInt},
+        risks: {type: GraphQLList(RiskType)},
+    })
+});
 
 const RiskType = new GraphQLObjectType({
     name: 'Risk',
@@ -82,165 +119,7 @@ const IpConnections = new GraphQLObjectType({
         inbound_ip_connection_to: {type: IpAddressType},
     })
 })
-class VarAllocator {
-    constructor() {
-        // Map from predicate_name to var
-        this.vars = new Map();
-        this.varTypes = new Map();
-        this.nextVar = '$a';
-    }
 
-    alloc = (predValue, predType) => {
-        if (this.vars[predValue]) {
-            return this.vars[predValue];
-        }
-
-        this.vars[predValue] = this.incrVar();
-
-        this.varTypes[predType] = this.nextVar;
-        
-        return this.vars[predValue];
-    }
-
-    incrVar = () => {
-        if (this.nextVar.slice(-1) === 'z') {
-            this.nextVar = this.nextVar + 'a'
-        } else {
-            const intVar = this.nextVar.slice(-1).charCodeAt(0);
-            this.nextVar = String.fromCharCode(intVar + 1) 
-        }
-
-        return this.nextVar;
-    }
-}
-
-
-const generateFilter = (varAlloc) => {
-    const filters = [];
-    for (const entry of varAlloc.vars.entries()) {
-        filters.push(`eq(${entry[0]}, ${entry[1]})`)
-    }
-    return filters.join(" AND ")
-}
-
-
-const varTypeList = (varAlloc) => {
-    const typedPairs = [];
-    for (const entry of varAlloc.vars.entries()) {
-        typedPairs.push(`${entry[0]}:${entry[1]}`)
-    }
-
-    return typedPairs.join(", ")
-}
-
-const reverseMap = (map) => {
-    const output = {};
-    for (const entry of map.entries()) {
-        output[entry[1]] = entry[0];
-    }
-    return output
-}
-
-const getChildren = async (dg_client, parentUid, childrenFilters) => {
-    const varAlloc = new VarAllocator();
-    varAlloc.alloc(childrenFilters.pid, 'int');
-    varAlloc.alloc(childrenFilters.processName, 'string');
-
-    const varTypes = varTypeList(varAlloc);
-    const filter = generateFilter(varAlloc);
-    const varListArray = Array.from(varAlloc.vars.keys());
-    if (varListArray.indexOf('uid') === -1) {
-        varListArray.push('uid');
-    }
-    if (varListArray.indexOf('node_key') === -1) {
-        varListArray.push('node_key');
-    }
-    const varList = varListArray.join(", ");
-    const query = `
-    query process(${varTypes})
-    {
-        process(func: uid(${parentUid}))
-        {
-            children  @filter(
-                ${filter}
-            ) {
-                ${varList}
-            }
-    
-        }
-    }`;
-
-    const txn = dg_client.newTxn();
-
-    try {
-        const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
-        const parent = res.getJson()['process'][0];
-        if (!parent) {
-            return []
-        }
-        return parent['children'];
-    } finally {
-        await txn.discard();
-    }
-}
-const dgraph = require("dgraph-js");
-const grpc = require("grpc");
-const get_random = (list) => {
-    return list[Math.floor((Math.random()*list.length))];
-}
-const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
-
-const getDgraphClient = () => {
-    const clientStub = new dgraph.DgraphClientStub(
-        // addr: optional, default: "localhost:9080"
-        mg_alpha,
-        // credentials: optional, default: grpc.credentials.createInsecure()
-        grpc.credentials.createInsecure(),
-    );
-
-    return new dgraph.DgraphClient(clientStub);
-}
-
-// TODO: Process is missing many properties and edges
-// 'fields' is a callback, so that we can declare ProcessType first, and then
-// reference it in 'children' later
-// This is called lazy evaluation, where we defer the execution of code until it is needed
-const ProcessType = new GraphQLObjectType({
-    name : 'Process',
-    fields : () => ({
-        ...BaseNode,
-        created_timestamp: {type: GraphQLInt},
-        image_name: {type: GraphQLString},
-        process_name: {type: GraphQLString},
-        arguments: {type: GraphQLString}, 
-        children: {
-            type: GraphQLList(ProcessType),
-            args: {
-                pid: {type: GraphQLInt}, 
-                process_name: {type: GraphQLString}
-            }, 
-            resolve: async (parent, args) => {
-                console.log('parent is, ', parent);
-                try{
-                    const children = await getChildren(getDgraphClient(), parent.uid, args); 
-                    console.log("Process Found", children)
-                    return children; 
-                } catch (e) {
-                    console.log("e", e)
-                }
-            }
-        },
-        bin_file: {type: FileType},
-        created_file: {type: FileType},
-        deleted_files: {type:FileType},
-        read_files: {type: GraphQLList(FileType)},
-        wrote_files: {type: GraphQLList(FileType)},
-        created_connections: {type: GraphQLList(ProcessOutboundConnections)},
-        inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
-        process_id: {type: GraphQLInt},
-        risks: {type: GraphQLList(RiskType)},
-    })
-});
 
 const NetworkConnection = new GraphQLObjectType({
     name: 'NetworkConnection',
