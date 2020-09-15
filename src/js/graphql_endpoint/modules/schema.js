@@ -2,10 +2,12 @@ const { getDgraphClient } = require('./dgraph_client.js');
 const { getLenses } = require('./API/queries/lenses.js');
 const { getProcess } = require('./API/queries/process.js');
 const { handleLensScope } = require('./API/queries/lensScope.js');
+
 const { 
-    UnexpectedError, 
-    QueryTookTooLongError 
-} = require('../modules/errors.js');
+    _Lens,
+    _LensScope,
+    _Process
+} = require('../modules/API/error_types.js');
 
 const { 
     GraphQLObjectType, 
@@ -35,33 +37,6 @@ const { // custom types
     PluginType, 
     GraplEntityType
 } = require('../modules/API/types.js');
-
-const _Lens = new GraphQLUnionType({
-    name: '_Lens',
-    types: [ 
-        GraphQLNonNull(UnexpectedError), 
-        GraphQLNonNull(QueryTookTooLongError),  
-        GraphQLNonNull(GraphQLList(GraphQLNonNull(LensNodeType))),
-    ],
-});
-
-const _LensScope = new GraphQLUnionType({
-    name: '_LensScope',
-    types: [ 
-        GraphQLNonNull(UnexpectedError),
-        GraphQLNonNull(QueryTookTooLongError),
-        GraphQLNonNull(LensNodeType),
-    ]
-})
-
-const _Process = new GraphQLUnionType({
-    name: '_Process', 
-    types: [ 
-        GraphQLNonNull(UnexpectedError),
-        GraphQLNonNull(QueryTookTooLongError),
-        GraphQLNonNull(GraphQLList(GraphQLNonNull(ProcessType))),
-    ]
-})
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType', 
