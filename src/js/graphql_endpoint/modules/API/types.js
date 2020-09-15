@@ -102,17 +102,18 @@ const ProcessType = new GraphQLObjectType({
                 process_name: {type: GraphQLString}
             }, 
             resolve: async (parent, args) => {
+                return []
                 try{
-                    const children = await getEdges(
-                        getDgraphClient(),
-                        parent.uid,
-                        'children',
-                        [
-                            ['pid', pid, 'int'],
-                            ['process_name', process_name, 'string']
-                        ]
-                    )
-                    // const children = await getChildren(getDgraphClient(), parent.uid, args); 
+                    // const children = await getEdges(
+                    //     getDgraphClient(),
+                    //     parent.uid,
+                    //     'children',
+                    //     [
+                    //         ['pid', args.pid, 'int'],
+                    //         ['process_name', args.process_name, 'string']
+                    //     ]
+                    // )
+                    const children = await getChildren(getDgraphClient(), parent.uid, args); 
                     console.log("Process Found", children);
                     return children; 
                     

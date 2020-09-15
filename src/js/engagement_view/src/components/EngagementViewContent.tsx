@@ -120,6 +120,7 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
             // console.log("Fetching lenses");
             getLenses(state.first, state.offset)
                 .then((response) => {
+                    console.log("Response", response)
                     if (response.lenses && response.lenses !== state.lenses) {
                         const lenses = state.lenses.concat(response.lenses);
                         setState({
@@ -172,11 +173,13 @@ const getLenses = async (first: number, offset: number) => {
     const query = `
         {
             lenses(first: ${first}, offset: ${offset}) {
-                uid,
-                node_key,
-                lens_name,
-                score, 
-                lens_type,
+                ...on LensNode{
+                    uid,
+                    node_key,
+                    lens_name,
+                    score, 
+                    lens_type,
+                }
             }
         }
     `;
