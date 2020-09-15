@@ -27,6 +27,64 @@ const LensNodeType = new GraphQLObjectType({
         lens_type: {type: GraphQLString}, 
     })
 })
+// function to build field resolver 
+// predicates - property filters to apply to target node 
+
+const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
+    // varAlloc - DGraph Variables
+    const varAlloc = new VarAllocator();
+    
+    for (const [predicate_name, predicate_value, predicate_type] of predicates) {
+        varAlloc.alloc(predicate_name, predicate_value, predicate_type);
+    }
+    const varTypes = varTypeList(varAlloc);
+    const filter = generateFilter(varAlloc);
+    const varListArray = Array.from(varAlloc.vars.keys()); // properties to return
+    
+    if (varListArray.indexOf('uid') === -1) {
+        varListArray.push('uid');
+    }
+    
+    if (varListArray.indexOf('node_key') === -1) {
+        varListArray.push('node_key');
+    }
+    
+    const varList = varListArray.join(", ");
+    
+    const query = `
+        query q(${varTypes})
+        {
+            q(func: uid(${rootUid}))
+            {
+                ${edgeName}  
+                @filter( ${filter}) 
+                {
+                    dgraph_type: dgraph.type
+                    ${varList}
+                }
+            }
+        }
+    `;
+
+    // filter - where clause, select
+
+    const txn = dg_client.newTxn();
+
+    try {
+        const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
+        const root_node = res.getJson()['q'];
+
+        if (!root_node) {
+            return []
+        }
+
+        return root_node[edgeName] || [];
+    } 
+    finally {
+        await txn.discard();
+    }
+
+}
 
 const ProcessType = new GraphQLObjectType({
     name : 'Process',
@@ -35,6 +93,7 @@ const ProcessType = new GraphQLObjectType({
         created_timestamp: {type: GraphQLInt},
         image_name: {type: GraphQLString},
         process_name: {type: GraphQLString},
+        process_id: {type: GraphQLInt},
         arguments: {type: GraphQLString}, 
         children: {
             type: GraphQLList(ProcessType),
@@ -43,13 +102,23 @@ const ProcessType = new GraphQLObjectType({
                 process_name: {type: GraphQLString}
             }, 
             resolve: async (parent, args) => {
-                console.log('parent is, ', parent);
                 try{
-                    const children = await getChildren(getDgraphClient(), parent.uid, args); 
-                    console.log("Process Found", children)
+                    const children = await getEdges(
+                        getDgraphClient(),
+                        parent.uid,
+                        'children',
+                        [
+                            ['pid', pid, 'int'],
+                            ['process_name', process_name, 'string']
+                        ]
+                    )
+                    // const children = await getChildren(getDgraphClient(), parent.uid, args); 
+                    console.log("Process Found", children);
                     return children; 
+                    
                 } catch (e) {
                     console.log("e", e)
+                    return 0; 
                 }
             }
         },
@@ -60,7 +129,6 @@ const ProcessType = new GraphQLObjectType({
         wrote_files: {type: GraphQLList(FileType)},
         created_connections: {type: GraphQLList(ProcessOutboundConnections)},
         inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
-        process_id: {type: GraphQLInt},
         risks: {type: GraphQLList(RiskType)},
     })
 });
