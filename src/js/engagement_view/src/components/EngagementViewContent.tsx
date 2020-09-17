@@ -117,21 +117,26 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
     useEffect( () => {
         const interval = setInterval(
             () => {
-            // console.log("Fetching lenses");
-            getLenses(state.first, state.offset)
-                .then((response) => {
-                    console.log("Response", response)
-                    if (response.lenses && response.lenses !== state.lenses) {
-                        const lenses = state.lenses.concat(response.lenses);
-                        setState({
-                            ...state,
-                            offset: state.offset + response.lenses.length || 0,
-                            lenses,
-                        })
+                getLenses(state.first, state.offset)
+                    .then((response) => {
+
+                        console.log("response", response.lenses)
+                        console.log("state.lenses", state.lenses)
+                        
+                        if (response.lenses && (response.lenses.lenses !== state.lenses)) {
+                            const lenses = state.lenses.concat(response.lenses.lenses);
+                            setState({
+                                ...state,
+                                offset: state.offset + response.lenses.lenses.length || 0,
+                                lenses
+                            })
+                        }
                     }
-                }
-            )
-        }, 1000);
+                )
+            }, 
+            1000
+        );
+
         return () => clearInterval(interval);
     });
 
@@ -166,9 +171,17 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
     )
 }
 
+type Lenses = {
+    lenses: Array<Lens>
+}
+
+type GetLensesResponse = {
+    lenses: Lenses
+}
+
 const graphql_edge = getGraphQlEdge();
 
-const getLenses = async (first: number, offset: number) => {
+const getLenses = async (first: number, offset: number): Promise<GetLensesResponse> => {
     console.log('fetching graph from', first, offset, graphql_edge);
     const query = `
         {
@@ -193,7 +206,7 @@ const getLenses = async (first: number, offset: number) => {
             }
         }
     `;
-    // console.log(`connecting to: ${graphql_edge}graphql`);
+
     const res = await fetch(`${graphql_edge}graphql`,
         {
             method: 'post',
@@ -205,16 +218,11 @@ const getLenses = async (first: number, offset: number) => {
         })
         .then(res => res.json())
         .then(res => {
-            console.log(
-                "res", res
-            )
             if (res.errors) {
-                console.log("res", res)
-                // console.error("lenses failed", res.errors);
+                console.error("lenses failed", res.errors);
                 // console.log("res.data", res.data)
                 res.data = {lenses: []};
             }
-            console.log("res.data", res.data)
             return res
         })
         .then((res) => res.data);
