@@ -22,6 +22,7 @@ const UnexpectedError = new GraphQLObjectType({
 })
 
 module.exports = { 
-    QueryTookTooLongError, 
+    QueryTookTooLongError,  
     UnexpectedError
 }
+

@@ -9,6 +9,7 @@ const secrets_manager_endpoint = process.env.SECRETS_MANAGER_ENDPOINT;
 // UNSAFE_TLS is sometimes necessary when developing local grapl
 // This should only ever be set when IS_LOCAL is also set
 if (IS_LOCAL===true && UNSAFE_TLS===true) {
+    console.warn("Disabling TLS on localgrapl for secretsmanager")
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 }
 console.log(IS_LOCAL, secrets_manager_endpoint);

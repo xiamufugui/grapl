@@ -173,12 +173,22 @@ const getLenses = async (first: number, offset: number) => {
     const query = `
         {
             lenses(first: ${first}, offset: ${offset}) {
-                ...on LensNode{
-                    uid,
-                    node_key,
-                    lens_name,
-                    score, 
-                    lens_type,
+                ...on Lenses {
+                    lenses {
+                        uid,
+                        node_key,
+                        lens_name,
+                        score, 
+                        lens_type,
+    
+                    }
+                }
+                ...on UnexpectedError{
+                    errorMessage
+                }
+                ...on QueryTookTooLong{
+                    errorMessage,
+                    timeout
                 }
             }
         }
@@ -195,9 +205,13 @@ const getLenses = async (first: number, offset: number) => {
         })
         .then(res => res.json())
         .then(res => {
+            console.log(
+                "res", res
+            )
             if (res.errors) {
-                console.error("lenses failed", res.errors);
-                console.log("res.data", res.data)
+                console.log("res", res)
+                // console.error("lenses failed", res.errors);
+                // console.log("res.data", res.data)
                 res.data = {lenses: []};
             }
             console.log("res.data", res.data)
