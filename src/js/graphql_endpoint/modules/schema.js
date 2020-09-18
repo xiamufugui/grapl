@@ -110,7 +110,6 @@ const RootQuery = new GraphQLObjectType({
                 }   
             }
         }
-        
     }
 })
 

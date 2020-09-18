@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import NodeTable from './NodeTable'
+
 import Button from "@material-ui/core/Button";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import BubbleChartIcon from '@material-ui/icons/BubbleChart';
@@ -10,6 +11,9 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableRow from "@material-ui/core/TableRow";
+import { Alert, AlertTitle } from '@material-ui/lab';
+
+
 import { Lens } from "../modules/GraphViz/CustomTypes";
 import { getGraphQlEdge } from "../modules/GraphViz/engagement_edge/getApiURLs";
 
@@ -19,21 +23,23 @@ import {SelectLensProps, ToggleLensTableProps, ToggleLensTableState, EngagementV
 
 import { useStyles } from './makeStyles/EngagementViewContentStyles';
 
+
 function SelectLens(props: SelectLensProps) {
     const classes = useStyles();
     return (
         <>
             <TableRow key={props.uid}>
                 <TableCell component="th" scope="row">
-                <Button className = {classes.lensName}
-                    onClick={
-                        () => { 
-                            props.setLens(props.lens)    
+                    <Button className = {classes.lensName}
+                        onClick={
+                            () => { 
+                                props.setLens(props.lens)    
+                            }
                         }
-                }>
-                    {/* #TODO: change color of lens name based on score */}
-                    {props.lens_type + " :\t\t" + props.lens + "\t\t" + props.score}
-                </Button>
+                    >
+                        {/* #TODO: change color of lens name based on score */}
+                        {props.lens_type + " :\t\t" + props.lens + "\t\t" + props.score}
+                    </Button>
                 </TableCell>
             </TableRow>
         </>
@@ -46,6 +52,7 @@ const defaultToggleLensTableState = (): ToggleLensTableState => {
         lenses: [],
         first: 100, // first is the page size
         offset: 0, // by default, start from page 0
+        errorMessage: false
     }
 }
 
@@ -59,7 +66,7 @@ const pagedTable = (
     classes: ClassNameMap<string>
 ) => {
     return (
-        <TableContainer>
+        <TableContainer>   
             <TablePagination
                 className = {classes.pagination}
                 aria-label = "pagination"
@@ -118,18 +125,20 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
         const interval = setInterval(
             () => {
                 getLenses(state.first, state.offset)
-                    .then((response) => {
-
-                        console.log("response", response.lenses)
-                        console.log("state.lenses", state.lenses)
-                        
-                        if (response.lenses && (response.lenses.lenses !== state.lenses)) {
-                            const lenses = state.lenses.concat(response.lenses.lenses);
-                            setState({
-                                ...state,
-                                offset: state.offset + response.lenses.lenses.length || 0,
-                                lenses
-                            })
+                    .then(
+                        (response) => {
+                            if (response.lenses && (response.lenses.lenses !== state.lenses)) {
+                                const lenses = state.lenses.concat(response.lenses.lenses);
+                                setState({
+                                    ...state,
+                                    offset: state.offset + response.lenses.lenses.length || 0,
+                                    lenses
+                                })
+                            } else if(response.errorMessage){
+                                setState({
+                                    ...state, 
+                                    errorMessage: true
+                                })
                         }
                     }
                 )
@@ -147,27 +156,43 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
                     <BubbleChartIcon className = {classes.icon} />
                     LENSES 
                 </b>
+
                 <Button
                     className = {classes.button}
-                    onClick={() => { 
-                        setState({
-                            ...state,
-                            toggled: !state.toggled,
-                        }) 
-                    }}> 
-                    <ExpandMoreIcon className={classes.expand}/> 
+                    onClick =
+                        {
+                            () => { 
+                                setState({
+                                    ...state,
+                                    toggled: !state.toggled,
+                                }) 
+                            }
+                        }
+                > 
+                <ExpandMoreIcon className={classes.expand}/> 
                 </Button>
             </div>
-        
+                        
+    
             <div className="lensToggle">
+                {state.toggled && state.errorMessage && errorMessage()}
                 {   
                     state.toggled && 
                     pagedTable(state, page, rowsPerPage, handleChangePage, handleChangeRowsPerPage, setLens, classes)
-                }
+                }        
             </div>
 
             <Divider />
+
         </>
+    )
+}
+
+const errorMessage = () => {
+    return (
+        <Alert variant="filled" severity="error"> 
+            Unable to retrieve lens. Please contact customer support.
+        </Alert>
     )
 }
 
@@ -176,7 +201,9 @@ type Lenses = {
 }
 
 type GetLensesResponse = {
-    lenses: Lenses
+    lenses: Lenses,
+    errorMessage: string, 
+    timeout: number
 }
 
 const graphql_edge = getGraphQlEdge();

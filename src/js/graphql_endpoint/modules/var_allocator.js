@@ -2,15 +2,19 @@ class VarAllocator {
     constructor() {
         // Map from predicate_name to var
         this.vars = new Map();
+        this.nameToVar = new Map();
         this.varTypes = new Map();
         this.nextVar = '$a';
     }
 
-    alloc = (predValue, predType) => {
+    alloc = (predName, predValue, predType) => {
+        if (!predValue) {
+            return
+        }
         if (this.vars[predValue]) {
             return this.vars[predValue];
         }
-
+        this.nameToVar.set(predName, predValue);
         this.vars[predValue] = this.incrVar();
 
         this.varTypes[predType] = this.nextVar;
@@ -33,7 +37,7 @@ class VarAllocator {
 
 const generateFilter = (varAlloc) => {
     const filters = [];
-    for (const entry of varAlloc.vars.entries()) {
+    for (const entry of varAlloc.nameToVar.entries()) {
         filters.push(`eq(${entry[0]}, ${entry[1]})`)
     }
     return filters.join(" AND ")

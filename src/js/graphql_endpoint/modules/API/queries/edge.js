@@ -1,3 +1,4 @@
+const {VarAllocator, varTypeList, reverseMap, generateFilter} = require('../../var_allocator.js')
 
 
 
@@ -6,7 +7,7 @@ const getEdge = async (dg_client, rootUid, edgeName, predicates) => {
     const varAlloc = new VarAllocator();
     
     for (const [predicate_name, predicate_value, predicate_type] of predicates) {
-        varAlloc.alloc(predicate_value, predicate_type);
+        varAlloc.alloc(predicate_name, predicate_value, predicate_type);
     }
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
@@ -67,11 +68,11 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
     const varAlloc = new VarAllocator();
     
     for (const [predicate_name, predicate_value, predicate_type] of predicates) {
-        varAlloc.alloc(predicate_value, predicate_type);
+        varAlloc.alloc(predicate_name, predicate_value, predicate_type);
     }
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
-
+    console.log('filter', filter);
 
     const varListArray = [];
     for (const [predicate_name, predicate_value, predicate_type] of predicates) {
@@ -103,6 +104,7 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
         }
     `;
 
+    console.log('getEdges query, ', query);
     // filter - where clause, select
 
     const txn = dg_client.newTxn();
@@ -110,12 +112,17 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
         const root_node = res.getJson()['q'];
+        console.log('kjkjljklkj', res.getJson()['q'][0][edgeName]);
 
         if (!root_node) {
             return []
         }
 
-        return root_node[edgeName] || [];
+        if (!root_node[0]) {
+            return []
+        }
+
+        return root_node[0][edgeName] || [];
     } 
     finally {
         await txn.discard();

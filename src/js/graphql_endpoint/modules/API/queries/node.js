@@ -1,4 +1,4 @@
-
+const {VarAllocator, varTypeList, reverseMap, generateFilter} = require('../../var_allocator.js')
 // function to build field resolver 
 // predicates - property filters to apply to target node 
 
@@ -7,14 +7,14 @@ const getNode = async (dg_client, typeName, predicates) => {
     const varAlloc = new VarAllocator();
     
     for (const [predicate_name, predicate_value, predicate_type] of predicates) {
-        varAlloc.alloc(predicate_value, predicate_type);
+        varAlloc.alloc(predicate_name, predicate_value, predicate_type);
     }
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
 
 
     const varListArray = [];
-    for (const [predicate_name,predicate_value, predicate_type] of predicates) {
+    for (const [predicate_name, predicate_value, predicate_type] of predicates) {
         varListArray.push(predicate_name);
     }
     

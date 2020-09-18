@@ -1,7 +1,7 @@
 const { GraphQLJSONObject } = require('graphql-type-json');
 const { getChildren }  = require('../node_types/process.js');
 const { getDgraphClient } = require('../dgraph_client.js');
-
+const {getEdges} = require('./queries/edge.js')
 const { 
     GraphQLObjectType, 
     GraphQLInt, 
@@ -45,18 +45,18 @@ const ProcessType = new GraphQLObjectType({
                 process_name: {type: GraphQLString}
             }, 
             resolve: async (parent, args) => {
-                return []
                 try{
-                    // const children = await getEdges(
-                    //     getDgraphClient(),
-                    //     parent.uid,
-                    //     'children',
-                    //     [
-                    //         ['pid', args.pid, 'int'],
-                    //         ['process_name', args.process_name, 'string']
-                    //     ]
-                    // )
-                    const children = await getChildren(getDgraphClient(), parent.uid, args); 
+                    console.log('fetching children of: ', parent.uid, ' with ', args);
+                    const children = await getEdges(
+                        getDgraphClient(),
+                        parent.uid,
+                        'children',
+                        [
+                            ['process_id', args.process_id, 'int'],
+                            ['process_name', args.process_name, 'string']
+                        ]
+                    )
+                    // const children = await getChildren(getDgraphClient(), parent.uid, args); 
                     console.log("Process Found", children);
                     return children; 
                     

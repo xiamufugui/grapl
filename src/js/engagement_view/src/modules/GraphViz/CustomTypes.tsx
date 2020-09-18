@@ -196,6 +196,7 @@ export type ToggleLensTableState = {
     lenses: Lens[],
     first: number,
     offset: number,
+    errorMessage: boolean
 }
 
 export type EngagementViewContentProps = {
