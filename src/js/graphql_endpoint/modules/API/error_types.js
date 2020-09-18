@@ -7,10 +7,8 @@ const {
     GraphQLNonNull
 }  = require('graphql');
 
-const {
-    LensNodeType, 
-    ProcessType
-} = require('./types.js');
+const { LensNodeType } = require('./types.js');
+const { ProcessType } = require('../node_types/process.js');
 
 const { 
     UnexpectedError, 
@@ -47,18 +45,14 @@ const LensScopeWithErrors = new GraphQLUnionType({
 })
 
 const resolveProcessResponseType = (node) => {
-    console.log('node', node)
+    // console.log('node', node);
     return 'Process';
 
 }
 
 const ProcessWithErrors = new GraphQLUnionType({
     name: 'ProcessWithErrors', 
-    types: [ UnexpectedError, QueryTookTooLongError, ProcessType
-        // GraphQLNonNull(UnexpectedError),
-        // GraphQLNonNull(QueryTookTooLongError),
-        // GraphQLNonNull(GraphQLList(GraphQLNonNull(ProcessType))),
-    ],
+    types: [ UnexpectedError, QueryTookTooLongError, ProcessType],
     resolveType: resolveProcessResponseType
 
 })

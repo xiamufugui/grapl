@@ -28,7 +28,6 @@ const { // custom types
     RiskType, 
     FileType, 
     IpConnections, 
-    ProcessType, 
     NetworkConnection, 
     IpPort,     
     IpAddressType, 

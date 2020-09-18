@@ -1,7 +1,5 @@
 const { GraphQLJSONObject } = require('graphql-type-json');
-const { getChildren }  = require('../node_types/process.js');
-const { getDgraphClient } = require('../dgraph_client.js');
-const {getEdges} = require('./queries/edge.js')
+
 const { 
     GraphQLObjectType, 
     GraphQLInt, 
@@ -28,54 +26,6 @@ const LensNodeType = new GraphQLObjectType({
         lens_type: {type: GraphQLString}, 
     })
 })
-
-const ProcessType = new GraphQLObjectType({
-    name : 'Process',
-    fields : () => ({
-        ...BaseNode,
-        created_timestamp: {type: GraphQLInt},
-        image_name: {type: GraphQLString},
-        process_name: {type: GraphQLString},
-        process_id: {type: GraphQLInt},
-        arguments: {type: GraphQLString}, 
-        children: {
-            type: GraphQLList(ProcessType),
-            args: {
-                process_id: {type: GraphQLInt}, 
-                process_name: {type: GraphQLString}
-            }, 
-            resolve: async (parent, args) => {
-                try{
-                    console.log('fetching children of: ', parent.uid, ' with ', args);
-                    const children = await getEdges(
-                        getDgraphClient(),
-                        parent.uid,
-                        'children',
-                        [
-                            ['process_id', args.process_id, 'int'],
-                            ['process_name', args.process_name, 'string']
-                        ]
-                    )
-                    // const children = await getChildren(getDgraphClient(), parent.uid, args); 
-                    console.log("Process Found", children);
-                    return children; 
-                    
-                } catch (e) {
-                    console.log("e", e)
-                    return 0; 
-                }
-            }
-        },
-        bin_file: {type: FileType},
-        created_file: {type: FileType},
-        deleted_files: {type:FileType},
-        read_files: {type: GraphQLList(FileType)},
-        wrote_files: {type: GraphQLList(FileType)},
-        created_connections: {type: GraphQLList(ProcessOutboundConnections)},
-        inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
-        risks: {type: GraphQLList(RiskType)},
-    })
-});
 
 const RiskType = new GraphQLObjectType({
     name: 'Risk',
@@ -172,13 +122,17 @@ const IpAddressType = new GraphQLObjectType({
 
 const AssetType = new GraphQLObjectType({
     name : 'Asset',
-    fields : {
-        ...BaseNode,
-        risks: {type: GraphQLList(RiskType)},
-        hostname: {type: GraphQLString},
-        asset_ip: {type: GraphQLList(IpAddressType)},
-        asset_processes: {type: GraphQLList(ProcessType)}, 
-        files_on_asset: {type: GraphQLList(FileType)},
+    fields : () => 
+    {
+        const { ProcessType } = require('../node_types/process.js'); 
+        return {
+            ...BaseNode,
+            risks: {type: GraphQLList(RiskType)},
+            hostname: {type: GraphQLString},
+            asset_ip: {type: GraphQLList(IpAddressType)},
+            asset_processes: {type: GraphQLList(ProcessType)}, 
+            files_on_asset: {type: GraphQLList(FileType)},
+        }
     }
 });
 
@@ -270,7 +224,11 @@ const resolveType = (data) => {
     
 const GraplEntityType = new GraphQLUnionType({
     name: 'GraplEntityType',
-    types: [ PluginType, FileType, ProcessType, AssetType ],
+    types: () => {
+        const { ProcessType } = require('../node_types/process.js'); 
+
+        return [ PluginType, FileType, ProcessType, AssetType ]
+    },
     resolveType: resolveType
 });
 
@@ -279,8 +237,7 @@ module.exports = {
     LensNodeType, 
     RiskType, 
     FileType, 
-    IpConnections, 
-    ProcessType, 
+    IpConnections,
     NetworkConnection, 
     IpPort, 
     IpAddressType, 

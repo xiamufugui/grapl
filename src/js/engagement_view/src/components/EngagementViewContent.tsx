@@ -219,8 +219,7 @@ const getLenses = async (first: number, offset: number): Promise<GetLensesRespon
                         node_key,
                         lens_name,
                         score, 
-                        lens_type,
-    
+                        lens_type
                     }
                 }
                 ...on UnexpectedError{
