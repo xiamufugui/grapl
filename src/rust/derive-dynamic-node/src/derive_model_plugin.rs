@@ -146,6 +146,7 @@ fn format_py_node_view(node_name: &str, fields: Vec<(String, String)>) -> String
     format!(
         r#"
 class {node_name}View(EntityView[SelfV, SelfQ]):
+    queryable = {node_name}Query
     def __init__(
         self,
         graph_client: GraphClient,
