@@ -57,15 +57,22 @@ const middleware = [cors(corsDelegate), validateJwt];
 
 app.options('*', cors(corsDelegate));
 
-app.use('/graphql', middleware, graphqlHTTP({
-    schema: schema,
-}));
+app.use(
+    '/graphql', 
+    middleware, 
+    graphqlHTTP({
+        schema: schema,
+    }
+));
 
 if (IS_LOCAL) {
-    app.use('/graphiql', graphqlHTTP({
-        schema: schema,
-        graphiql: true,
-    }));  
+    app.use(
+        '/graphiql', 
+        graphqlHTTP({
+            schema: schema,
+            graphiql: true,
+        })
+    );  
     app.listen(PORT, function () {
         console.log("GraphQL Server started on Port " + PORT);
     });

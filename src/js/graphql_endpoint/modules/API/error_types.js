@@ -7,7 +7,7 @@ const {
     GraphQLNonNull
 }  = require('graphql');
 
-const { LensNodeType } = require('./types.js');
+const { LensNodeType } = require('../node_types/lens_node.js');
 const { ProcessType } = require('../node_types/process.js');
 
 const { 

@@ -2,7 +2,7 @@ const { getDgraphClient } = require('../../dgraph_client.js');
 const { getLensByName, inLensScope } = require('./lenses');
 const { getNeighborsFromNode, getRisksFromNode } = require('./node.js');
 
-const { builtins } = require('../types.js');
+const { builtins } = require('../../node_types/grapl_entity.js');
 
 const handleLensScope = async (parent, args) => {
     const dg_client = getDgraphClient();

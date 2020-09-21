@@ -22,22 +22,6 @@ const {
     GraphQLNonNull
 }  = require('graphql');
 
-const { // custom types
-    BaseNode, 
-    LensNodeType, 
-    RiskType, 
-    FileType, 
-    IpConnections, 
-    NetworkConnection, 
-    IpPort,     
-    IpAddressType, 
-    AssetType, 
-    ProcessOutboundConnections, 
-    ProcessInboundConnections, 
-    builtins, 
-    PluginType, 
-    GraplEntityType
-} = require('../modules/API/types.js');
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType', 
@@ -58,9 +42,7 @@ const RootQuery = new GraphQLObjectType({
                 // #TODO: Make sure to validate that 'first' is under a specific limit, maybe 1000
                 try {
                     const lenses =  await getLenses(getDgraphClient(), first, offset);
-                    
                     console.log('lenses', lenses);
-
                     return {lenses};
                 } catch (e) {
                     console.log("Error: Lenses Query Failed ", e);
@@ -98,8 +80,8 @@ const RootQuery = new GraphQLObjectType({
                             ['process_id', args.process_id, 'int'],
                             ['process_name', args.process_name, 'string'],
                         ]
-                        ); 
-                    console.log("Process Found", process)
+                    ); 
+                    console.log("Process Found ", process)
                     return process; 
                 } catch (e) {
                     console.log("Error: Process Query Failed ", e);

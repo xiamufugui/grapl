@@ -1,6 +1,11 @@
 const { getDgraphClient } = require('../dgraph_client.js');
 const { getEdges } = require('../API/queries/edge.js');
-const { BaseNode, FileType, ProcessOutboundConnections, ProcessInboundConnections, RiskType }  = require('../API/types.js');
+
+const { BaseNode } = require('./base_node.js');
+const { FileType } = require('./file.js');
+const { ProcessOutboundConnections } = require('./process_outbound_connections.js');
+const { ProcessInboundConnections } = require('./process_inbound_connections.js');
+const { RiskType } = require('./risk.js');
 
 const { 
     GraphQLObjectType, 
@@ -8,7 +13,6 @@ const {
     GraphQLString, 
     GraphQLList, 
 }  = require('graphql');
-
 
 const { 
     VarAllocator,
