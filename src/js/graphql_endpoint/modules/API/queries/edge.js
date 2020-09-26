@@ -1,7 +1,5 @@
 const {VarAllocator, varTypeList, reverseMap, generateFilter} = require('../../var_allocator.js')
 
-
-
 const getEdge = async (dg_client, rootUid, edgeName, predicates) => {
     // varAlloc - DGraph Variables
     const varAlloc = new VarAllocator();
@@ -11,9 +9,8 @@ const getEdge = async (dg_client, rootUid, edgeName, predicates) => {
     }
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
-
-
     const varListArray = [];
+    
     for (const [predicate_name, predicate_value, predicate_type] of predicates) {
         varListArray.push(predicate_name);
     }
@@ -43,19 +40,24 @@ const getEdge = async (dg_client, rootUid, edgeName, predicates) => {
         }
     `;
 
-    // filter - where clause, select
-
+    // @filter - where clause, select
+    console.log('getEdge', query);
     const txn = dg_client.newTxn();
 
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
         const root_node = res.getJson()['q'];
-
+        console.log('getEdge res', root_node);
+        
         if (!root_node) {
-            return null
+            return []
         }
 
-        return root_node[edgeName] || null;
+        if (!root_node[0]) {
+            return []
+        }
+
+        return root_node[0][edgeName] || [];
     } 
     finally {
         await txn.discard();
@@ -72,9 +74,8 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
     }
     const varTypes = varTypeList(varAlloc);
     const filter = generateFilter(varAlloc);
-    console.log('filter', filter);
-
     const varListArray = [];
+    
     for (const [predicate_name, predicate_value, predicate_type] of predicates) {
         varListArray.push(predicate_name);
     }
@@ -105,15 +106,13 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
     `;
 
     console.log('getEdges query, ', query);
-    // filter - where clause, select
 
     const txn = dg_client.newTxn();
 
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
         const root_node = res.getJson()['q'];
-        console.log('kjkjljklkj', res.getJson()['q'][0][edgeName]);
-
+        
         if (!root_node) {
             return []
         }
@@ -130,8 +129,28 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
 
 }
 
+const expandTo = async (dgraphClient, parentUid, edgeName, filters, expandFn) => {
+    try{
+        console.log('fetching edge', edgeName, ' of: ', parentUid, ' with ', filters);
+        const edge = await expandFn(
+            dgraphClient,
+            parentUid,
+            edgeName,
+            filters,
+        )
+        console.log('Found edge', edgeName, ' of: ', parentUid, edgeName);
+        return edge; 
+        
+    } catch (e) {
+        console.log("e", e)
+        return 0; 
+    }
+}
+
+
 
 module.exports = {
     getEdge,
-    getEdges
+    getEdges,
+    expandTo,
 }

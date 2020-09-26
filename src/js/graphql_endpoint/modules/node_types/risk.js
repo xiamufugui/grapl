@@ -20,3 +20,7 @@ const RiskType = new GraphQLObjectType({
 module.exports = {
     RiskType
 }
+
+
+
+

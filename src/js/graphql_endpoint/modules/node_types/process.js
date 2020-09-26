@@ -1,9 +1,8 @@
 const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdges } = require('../API/queries/edge.js');
+const { getEdges, getEdge, expandTo } = require('../API/queries/edge.js');
 
 const { BaseNode } = require('./base_node.js');
-const { FileType } = require('./file.js');
-const { ProcessOutboundConnections } = require('./process_outbound_connections.js');
+const { ProcessOutboundConnections, processOutboundConnectionsResolver } = require('./process_outbound_connections.js');
 const { ProcessInboundConnections } = require('./process_inbound_connections.js');
 const { RiskType } = require('./risk.js');
 
@@ -21,51 +20,60 @@ const {
     reverseMap
 } = require('../var_allocator.js')
 
-const ProcessType = new GraphQLObjectType({
-    name : 'Process',
-    fields : () => ({
-        ...BaseNode,
+const processArgs = () => {
+    return {
+        process_id: {type: GraphQLInt}, 
+        process_name: {type: GraphQLString},
         created_timestamp: {type: GraphQLInt},
         image_name: {type: GraphQLString},
-        process_name: {type: GraphQLString},
-        process_id: {type: GraphQLInt},
-        arguments: {type: GraphQLString}, 
-        children: {
-            type: GraphQLList(ProcessType),
-            args: {
-                process_id: {type: GraphQLInt}, 
-                process_name: {type: GraphQLString}
-            }, 
-            resolve: async (parent, args) => {
-                try{
-                    console.log('fetching children of: ', parent.uid, ' with ', args);
-                    const children = await getEdges(
-                        getDgraphClient(),
-                        parent.uid,
-                        'children',
-                        [
-                            ['process_id', args.process_id, 'int'],
-                            ['process_name', args.process_name, 'string']
-                        ]
-                    )
-                    console.log("Process Found", children);
-                    return children; 
-                    
-                } catch (e) {
-                    console.log("e", e)
-                    return 0; 
+    }
+}
+
+const processFilters = (args) => {
+    return [
+        ['process_id', args.process_id, 'int'],
+        ['process_name', args.process_name, 'string'],
+        ['created_timestamp', args.created_timestamp, 'int'],
+        ['image_name', args.image_name, 'string'],
+    ]
+}
+
+const ProcessType = new GraphQLObjectType({
+    name : 'Process',
+    fields : () => {
+        const { FileType, defaultFileResolver, defaultFilesResolver } = require('./file.js');
+
+        return {
+            ...BaseNode,
+            created_timestamp: {type: GraphQLInt},
+            image_name: {type: GraphQLString},
+            process_name: {type: GraphQLString},
+            process_id: {type: GraphQLInt},
+            arguments: {type: GraphQLString}, 
+            parent: {
+                type: ProcessType,
+                args: processArgs(),
+                resolve: async (srcNode, args) => {
+                    return await expandTo(getDgraphClient(), srcNode.uid, 'parent', processFilters(args), getEdge);
                 }
-            }
-        },
-        bin_file: {type: FileType},
-        created_file: {type: FileType},
-        deleted_files: {type:FileType},
-        read_files: {type: GraphQLList(FileType)},
-        wrote_files: {type: GraphQLList(FileType)},
-        created_connections: {type: GraphQLList(ProcessOutboundConnections)},
-        inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
-        risks: {type: GraphQLList(RiskType)},
-    })
+            },
+            children: {
+                type: GraphQLList(ProcessType),
+                args: processArgs(), 
+                resolve: async (parent, args) => {
+                    return await expandTo(getDgraphClient(), parent.uid, 'children', processFilters(args), getEdges);
+                }
+            },
+            bin_file: defaultFileResolver('bin_file'),
+            created_files: defaultFilesResolver('created_files'),
+            deleted_files: defaultFileResolver('deleted_files'),
+            read_files: defaultFilesResolver('read_files'),
+            wrote_files: defaultFilesResolver('wrote_files'),
+            created_connections: processOutboundConnectionsResolver('created_connections'),
+            inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
+            risks: {type: GraphQLList(RiskType)},
+        }
+    }
 });
 
 
@@ -123,5 +131,7 @@ const getChildren = async (dg_client, parentUid, childrenFilters) => {
 
 module.exports = {
     ProcessType,
+    processArgs,
+    processFilters,
     getChildren
 }

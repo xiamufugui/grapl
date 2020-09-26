@@ -12,7 +12,7 @@ const AssetType = new GraphQLObjectType(
             const { RiskType } = require('./risk.js');
             const { FileType } = require('./file.js');
             const { IpAddressType } = require('./ip_address.js');
-            const { BaseNode } = require('./base_node.js')
+            const { BaseNode } = require('./base_node.js');
 
             return {
                 ...BaseNode,
