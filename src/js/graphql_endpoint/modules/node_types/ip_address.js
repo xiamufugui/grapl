@@ -4,6 +4,18 @@ const {
     GraphQLList
 }  = require('graphql');
 
+const ipAddressArgs = () => {
+    return {
+        ip_address: {type: GraphQLString}
+    }
+}
+
+const ipAddressFilters = (args) => {
+    return [
+        ['ip_address', args.ip_address, 'string']
+    ]
+}
+
 const IpAddressType = new GraphQLObjectType({
     name : 'IpAddress',
     fields: () => {
@@ -19,5 +31,7 @@ const IpAddressType = new GraphQLObjectType({
 });
 
 module.exports = {
-    IpAddressType
+    IpAddressType,
+    ipAddressArgs,
+    ipAddressFilters,
 }

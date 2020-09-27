@@ -6,6 +6,7 @@ const {
 }  = require('graphql');
 
 const { getEdges, getEdge, expandTo } = require('../API/queries/edge.js');
+const {ipAddressFilters, ipPortArgs} = require('./ip_port.js');
 
 const processOutboundConnectionsFilters = (args) => {
     return [
@@ -43,6 +44,7 @@ const processOutboundConnectionsResolver = (edgeName) => {
     }
 }
 
+// Type
 const ProcessOutboundConnections = new GraphQLObjectType ({
     name: 'ProcessOutboundConnections',
     fields: () => {
@@ -57,8 +59,20 @@ const ProcessOutboundConnections = new GraphQLObjectType ({
             terminated_timestamp: {type: GraphQLInt},
             last_seen_timestamp: {type: GraphQLInt},
             port: {type: GraphQLInt},
-            connected_over: {type: GraphQLList(IpPort)},
-            connected_to: {type: GraphQLList(IpPort)},
+            connected_over: {
+                type: GraphQLList(IpPort),
+                args: ipPortArgs(),
+                resolve: async(parent, args) => {
+                    return await expandTo(getDGraphClient(), parent.uid, 'children', ipAddressFilters(args), getEdges);
+                }
+            },
+            connected_to: {
+                type: GraphQLList(IpPort),
+                args: ipPortArgs(),
+                resolve: async(parent, args) => {
+                    return await expandTo(getDGraphClient(), parent.uid, 'children', ipAddressFilters(args), getEdges);
+                }
+            },
         }
     }
 })
