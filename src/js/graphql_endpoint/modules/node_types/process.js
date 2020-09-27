@@ -2,7 +2,7 @@ const { getDgraphClient } = require('../dgraph_client.js');
 const { getEdges, getEdge, expandTo } = require('../API/queries/edge.js');
 
 const { BaseNode } = require('./base_node.js');
-const { ProcessOutboundConnections, processOutboundConnectionsResolver } = require('./process_outbound_connections.js');
+const { defaultProcessOutboundConnectionsResolver } = require ('../default_field_resolvers/process_outbound_connection_resolver.js');
 const { ProcessInboundConnections } = require('./process_inbound_connections.js');
 const { RiskType } = require('./risk.js');
 
@@ -41,7 +41,7 @@ const processFilters = (args) => {
 const ProcessType = new GraphQLObjectType({
     name : 'Process',
     fields : () => {
-        const { FileType, defaultFileResolver, defaultFilesResolver } = require('./file.js');
+        const { defaultFileResolver, defaultFilesResolver } = require('../default_field_resolvers/file_resolver.js');
 
         return {
             ...BaseNode,
@@ -69,7 +69,7 @@ const ProcessType = new GraphQLObjectType({
             deleted_files: defaultFileResolver('deleted_files'),
             read_files: defaultFilesResolver('read_files'),
             wrote_files: defaultFilesResolver('wrote_files'),
-            created_connections: processOutboundConnectionsResolver('created_connections'),
+            created_connections: defaultProcessOutboundConnectionsResolver('created_connections'),
             inbound_connections: {type: GraphQLList(ProcessInboundConnections)},
             risks: {type: GraphQLList(RiskType)},
         }
