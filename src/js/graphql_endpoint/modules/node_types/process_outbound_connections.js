@@ -9,7 +9,6 @@ const { defaultIpPortsResolver } = require('../default_field_resolvers/ip_port_r
 const ProcessOutboundConnections = new GraphQLObjectType ({
     name: 'ProcessOutboundConnections',
     fields: () => {
-        const { IpPort } = require('./ip_port.js');
         const { BaseNode } = require('./base_node.js');
         
         return {

@@ -15,7 +15,7 @@ const processInboundConnectionArgs = () => {
         terminated_timestamp: {type: GraphQLInt},
         last_seen_timestamp: {type: GraphQLInt},
         port: {type: GraphQLInt},
-    }
+    };
 }
 
 const processInboundConnectionFilters = (args) => {
@@ -40,7 +40,7 @@ const defaultProcessInboundConnectionResolver = (edgeName) => {
             console.log ("expanded processInboundConnection", expanded);
             return expanded
         }
-    }
+    };
 };
 
 const defaultProcessInboundConnectionsResolver = (edgeName) => {
@@ -53,7 +53,7 @@ const defaultProcessInboundConnectionsResolver = (edgeName) => {
             console.log ("expanded processInboundConnection", expanded);
             return expanded
         }
-    }
+    };
 }
 
 module.exports = {

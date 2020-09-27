@@ -56,8 +56,6 @@ const defaultIpPortsResolver = (edgeName) => {
 
 
 module.exports = {
-    ipPortArgs,
-    ipPortFilters,
     defaultIpPortResolver,
     defaultIpPortsResolver
 }
