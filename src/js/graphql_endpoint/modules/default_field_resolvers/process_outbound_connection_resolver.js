@@ -47,7 +47,7 @@ const defaultProcessOutboundConnectionsResolver = (edgeName) => {
 
 const defaultProcessOutboundConnectionResolver = (edgeName) => {
     return {
-        type: GraphQLList(ProcessOutboundConnections),
+        type: ProcessOutboundConnections,
         args: processOutboundConnectionsArgs(),
         resolve: async (parent, args) => {
             console.log("expanding processOutboundConnectionResolver");
@@ -58,9 +58,7 @@ const defaultProcessOutboundConnectionResolver = (edgeName) => {
     }
 }
 
-module.exports = {
-    processOutboundConnectionsFilters,
-    processOutboundConnectionsArgs, 
+module.exports = { 
     defaultProcessOutboundConnectionsResolver,
     defaultProcessOutboundConnectionResolver
 }

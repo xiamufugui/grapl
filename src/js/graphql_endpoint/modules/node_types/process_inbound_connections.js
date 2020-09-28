@@ -2,7 +2,6 @@ const {
     GraphQLObjectType, 
     GraphQLInt, 
     GraphQLString, 
-    GraphQLList, 
 }  = require('graphql');
 
 const ProcessInboundConnections = new GraphQLObjectType ({
@@ -11,7 +10,7 @@ const ProcessInboundConnections = new GraphQLObjectType ({
 
         const { BaseNode } = require('./base_node.js');
         const { defaultIpPortsResolver } = require('../default_field_resolvers/ip_port_resolver.js');
-        const { defaultIpAddressResolver } = require('../default_field_resolvers/ip_address.js');
+        const { defaultIpAddressResolver } = require('../default_field_resolvers/ip_address_resolver.js');
 
         return {
             ...BaseNode,
@@ -21,7 +20,7 @@ const ProcessInboundConnections = new GraphQLObjectType ({
             terminated_timestamp: {type: GraphQLInt},
             last_seen_timestamp: {type: GraphQLInt},
             port: {type: GraphQLInt},
-            bound_port: defaultIpPortsResolver('boundPort'),
+            bound_port: defaultIpPortsResolver('bound_port'),
             bound_ip: defaultIpAddressResolver('bound_ip'),
         }
     }

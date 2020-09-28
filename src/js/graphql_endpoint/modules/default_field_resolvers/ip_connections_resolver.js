@@ -1,6 +1,7 @@
 const {  
     GraphQLInt, 
     GraphQLString, 
+    GraphQLList,
 }  = require('graphql');
 
 const { getDgraphClient } = require('../dgraph_client.js');
@@ -47,7 +48,7 @@ const defaultIpConnectionResolver = (edgeName) => {
 
 const defaultIpConnectionsResolver = (edgeName) => {
     return {
-        type: IpConnections,
+        type: GraphQLList(IpConnections),
         args: ipConnectionsArgs(),
         resolve: async(parent, args) => {
             console.log("expanding defaultIpConnectionResolver");
@@ -58,9 +59,7 @@ const defaultIpConnectionsResolver = (edgeName) => {
     };
 };
 
-
 module.exports = {
-    IpConnections,
     defaultIpConnectionResolver,
     defaultIpConnectionsResolver
 }

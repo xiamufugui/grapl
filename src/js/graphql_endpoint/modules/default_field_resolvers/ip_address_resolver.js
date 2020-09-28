@@ -1,5 +1,6 @@
 const { 
     GraphQLString, 
+    GraphQLList,
 }  = require('graphql');
 
 const { getDgraphClient } = require('../dgraph_client.js');
@@ -37,7 +38,7 @@ const defaultIpAddressResolver = (edgeName) => {
 
 const defaultIpAddressesResolver = (edgeName) => {
     return {
-        type: IpAddressType,
+        type: GraphQLList(IpAddressType),
         args: ipAddressArgs(),
         resolve: async(parent, args) => {
             console.log("expanding defaultIpAddressesResolver");

@@ -1,11 +1,12 @@
 const {  
     GraphQLInt, 
     GraphQLString, 
+    GraphQLList,
 }  = require('graphql');
 
 const { getDgraphClient } = require('../dgraph_client.js');
 const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-
+const { ProcessInboundConnections } = require('../node_types/process_inbound_connections.js')
 
 const processInboundConnectionArgs = () => { 
     return {
@@ -38,14 +39,14 @@ const defaultProcessInboundConnectionResolver = (edgeName) => {
             console.log("expanding defaultProcessInboundConnectionResolver");
             const expanded = await expandTo(getDgraphClient(), parent.uid, edgeName, processInboundConnectionFilters(args), getEdge);
             console.log ("expanded processInboundConnection", expanded);
-            return expanded
+            return expanded;
         }
     };
 };
 
 const defaultProcessInboundConnectionsResolver = (edgeName) => {
     return {
-        type: ProcessInboundConnections,
+        type: GraphQLList(ProcessInboundConnections),
         args: processInboundConnectionArgs(),
         resolve: async(parent, args) => {
             console.log("expanding defaultProcessInboundConnectionResolver");

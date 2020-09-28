@@ -1,5 +1,6 @@
 const {  
     GraphQLString, 
+    GraphQLList,
 }  = require('graphql');
 
 const { getDgraphClient } = require('../dgraph_client.js');
@@ -33,7 +34,7 @@ const defaultAssetResolver = (edgeName) => {
 
 const defaultAssetsResolver = (edgeName) => {
     return {
-        type: AssetType,
+        type: GraphQLList(AssetType),
         args: assetArgs(),
         resolve: async(parent, args) => {
             console.log("expanding defaultAssetsResolver");

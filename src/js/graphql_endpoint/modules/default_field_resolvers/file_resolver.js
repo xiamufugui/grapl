@@ -84,9 +84,6 @@ const defaultFilesResolver = (edgeName) => {
 } 
 
 module.exports = {
-    FileType,
-    fileArgs,
-    fileFilters,
     defaultFileResolver,
     defaultFilesResolver,
 }

@@ -28,7 +28,7 @@ const ipPortFilters = (args) => {
 
 const defaultIpPortResolver = (edgeName) => {
     return {
-        type: GraphQLList(IpPort),
+        type: IpPort,
         args: ipPortArgs(),
         resolve: async (parent, args) => {
             console.log("expanding defaultIpPortResolver");

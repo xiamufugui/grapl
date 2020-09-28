@@ -5,6 +5,7 @@ const { BaseNode } = require('./base_node.js');
 const { defaultProcessOutboundConnectionsResolver } = require ('../default_field_resolvers/process_outbound_connection_resolver.js');
 const { ProcessInboundConnections } = require('./process_inbound_connections.js');
 const { RiskType } = require('./risk.js');
+const { defaultChildrenResolver, defaultParentProcessResolver } = require('../default_field_resolvers/process_resolver.js');
 
 const { 
     GraphQLObjectType, 
@@ -50,23 +51,11 @@ const ProcessType = new GraphQLObjectType({
             process_name: {type: GraphQLString},
             process_id: {type: GraphQLInt},
             arguments: {type: GraphQLString}, 
-            parent: {
-                type: ProcessType,
-                args: processArgs(),
-                resolve: async (srcNode, args) => {
-                    return await expandTo(getDgraphClient(), srcNode.uid, 'parent', processFilters(args), getEdge);
-                }
-            },
-            children: {
-                type: GraphQLList(ProcessType),
-                args: processArgs(), 
-                resolve: async (parent, args) => {
-                    return await expandTo(getDgraphClient(), parent.uid, 'children', processFilters(args), getEdges);
-                }
-            },
+            parent: defaultParentProcessResolver('parent'),
+            children: defaultChildrenResolver('children'),
             bin_file: defaultFileResolver('bin_file'),
             created_files: defaultFilesResolver('created_files'),
-            deleted_files: defaultFileResolver('deleted_files'),
+            deleted_files: defaultFilesResolver('deleted_files'),
             read_files: defaultFilesResolver('read_files'),
             wrote_files: defaultFilesResolver('wrote_files'),
             created_connections: defaultProcessOutboundConnectionsResolver('created_connections'),
