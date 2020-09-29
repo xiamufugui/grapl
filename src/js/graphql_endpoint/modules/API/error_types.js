@@ -1,7 +1,5 @@
 const { 
     GraphQLObjectType, 
-    GraphQLInt, 
-    GraphQLString, 
     GraphQLList,
     GraphQLUnionType, 
     GraphQLNonNull
@@ -45,7 +43,6 @@ const LensScopeWithErrors = new GraphQLUnionType({
 })
 
 const resolveProcessResponseType = (node) => {
-    // console.log('node', node);
     return 'Process';
 
 }

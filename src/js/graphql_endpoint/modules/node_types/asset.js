@@ -4,23 +4,24 @@ const {
     GraphQLList
 }  = require('graphql');
 
+
 const AssetType = new GraphQLObjectType(
     {
         name: 'Asset',
         fields: () => {
-            const { ProcessType } = require('./process.js'); 
-            const { RiskType } = require('./risk.js');
-            const { FileType } = require('./file.js');
-            const { IpAddressType } = require('./ip_address.js');
             const { BaseNode } = require('./base_node.js');
+            const { defaultRisksResolver } = require('../default_field_resolvers/risk_resolver.js');
+            const { defaultIpAddressesResolver } = require('../default_field_resolvers/ip_address_resolver.js');
+            const { defaultFilesResolver } = require('../default_field_resolvers/file_resolver.js');
+            const { defaultProcessesResolver } = require('../default_field_resolvers/process_resolver.js');
 
             return {
                 ...BaseNode,
-                risks: { type: GraphQLList(RiskType) },
+                risks: defaultRisksResolver('risks'),
                 hostname: { type: GraphQLString },
-                asset_ip: { type: GraphQLList(IpAddressType) },
-                asset_processes: { type: GraphQLList(ProcessType) }, 
-                files_on_asset: { type: GraphQLList(FileType) },
+                asset_ip: defaultIpAddressesResolver('asset_ip'),
+                asset_processes: defaultProcessesResolver('asset_processes'), 
+                files_on_asset: defaultFilesResolver('files_on_asset'),
             }
         }
     }

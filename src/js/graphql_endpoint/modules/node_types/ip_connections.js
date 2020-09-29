@@ -5,15 +5,16 @@ const {
     GraphQLList, 
 }  = require('graphql');
 
+const { defaultRisksResolver } = require('../default_field_resolvers/risk_resolver.js');
+
 const IpConnections = new GraphQLObjectType({
     name: 'IpConnections',
     fields: () => {
-        const { RiskType } = require('./risk.js');
         const { IpAddressType } = require('./ip-address.js');
 
         return {
             ...BaseNode,
-            risks: {type: GraphQLList(RiskType)},
+            risks: defaultRisksResolver('risks'),
             src_ip_addr: {type: GraphQLString},
             src_port: {type: GraphQLString},
             dst_ip_addr: {type: GraphQLString},

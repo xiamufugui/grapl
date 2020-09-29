@@ -48,6 +48,7 @@ const defaultNetworkConnectionResolver = (edgeName) => {
 };
 
 const defaultNetworkConnectionsResolver = (edgeName) => {
+    const { NetworkConnection } = require('../node_types/network_connection.js');
     return {
         type: GraphQLList(NetworkConnection),
         args: networkConnectionArgs(),

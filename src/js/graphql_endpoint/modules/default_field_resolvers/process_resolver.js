@@ -25,7 +25,7 @@ const processFilters = (args) => {
     ]
 }
 
-const defaultParentProcessResolver = (edgeName) => {
+const defaultProcessResolver = (edgeName) => {
     const { ProcessType } = require('../node_types/process.js');
 
     return {
@@ -37,7 +37,7 @@ const defaultParentProcessResolver = (edgeName) => {
     }
 }
 
-const defaultChildrenResolver =  (edgeName) => {
+const defaultProcessesResolver =  (edgeName) => {
     const { ProcessType } = require('../node_types/process.js');
 
     return {
@@ -50,6 +50,6 @@ const defaultChildrenResolver =  (edgeName) => {
 }
 
 module.exports = {
-    defaultParentProcessResolver,
-    defaultChildrenResolver
+    defaultProcessResolver,
+    defaultProcessesResolver,
 }

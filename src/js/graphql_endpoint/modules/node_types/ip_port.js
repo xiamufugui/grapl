@@ -2,13 +2,14 @@ const {
     GraphQLObjectType, 
     GraphQLInt, 
     GraphQLString, 
-    GraphQLList, 
 }  = require('graphql');
+
+const { defaultNetworkConnectionsResolver } = require('../default_field_resolvers/network_connections_resolver.js');
+
 
 const IpPort = new GraphQLObjectType({
     name: 'IpPort',
     fields: () => {
-        const { NetworkConnection } = require('./network_connection.js');
         const { BaseNode } = require('./base_node.js');
         
         return {
@@ -18,7 +19,7 @@ const IpPort = new GraphQLObjectType({
             port: {type: GraphQLInt}, 
             first_seen_timestamp: {type: GraphQLInt}, 
             last_seen_timestamp: {type: GraphQLInt}, 
-            network_connections: {type: GraphQLList(NetworkConnection)},
+            network_connections: defaultNetworkConnectionsResolver('network_connections'),
         }
     }
 })

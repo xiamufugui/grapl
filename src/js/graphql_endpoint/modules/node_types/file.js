@@ -1,5 +1,3 @@
-const { getEdges, getEdge, expandTo } = require('../API/queries/edge.js');
-const { getDgraphClient } = require('../dgraph_client.js');
 const { BaseNode } = require('./base_node.js');
 
 const { 
@@ -14,7 +12,8 @@ const FileType = new GraphQLObjectType({
     name : 'File',
     fields : () => {
         const { RiskType } = require('./risk.js');
-        const { ProcessType, processArgs, processFilters } = require('./process.js');
+        const { defaultProcessResolver } = require('../default_field_resolvers/process_resolver.js');
+        const { defaultRisksResolver } = require('../default_field_resolvers/risk_resolver.js');
 
         return {
             ...BaseNode,
@@ -35,18 +34,20 @@ const FileType = new GraphQLObjectType({
             md5_hash: {type: GraphQLString},
             sha1_hash: {type: GraphQLString},
             sha256_hash: {type: GraphQLString},
-            risks: {type: GraphQLList(RiskType)},
+            risks: defaultRisksResolver('risks'),
             file_path: {type: GraphQLString},
-            creator: {
-                type: ProcessType,
-                args: processArgs(),
-                resolve: async (srcNode, args) => { 
-                    return expandTo(getDgraphClient(), srcNode.uid, 'creator', processFilters(args), getEdge)
-                }
-            }
+            creator: defaultProcessResolver('creator'),
         }
     }
 });
+
+// creator: {
+//     type: ProcessType,
+//     args: processArgs(),
+//     resolve: async (srcNode, args) => { 
+//         return expandTo(getDgraphClient(), srcNode.uid, 'creator', processFilters(args), getEdge)
+//     }
+// }
 
 
 module.exports = {

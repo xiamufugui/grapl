@@ -20,7 +20,7 @@ const ipConnectionsArgs = () => {
     }
 }
 
-const ipConnectionsFilter = (args) => {
+const ipConnectionsFilters = (args) => {
     return [
         ['src_ip_addr', args.src_ip_addr , 'string'],
         ['src_port', args.src_port , 'string'],
