@@ -1,0 +1,12 @@
+FROM rust:1.46-slim-buster
+
+RUN apt-get update && apt-get install -y apt-utils musl musl-dev musl-tools wget
+RUN wget -q https://github.com/mozilla/sccache/releases/download/0.2.13/sccache-0.2.13-x86_64-unknown-linux-musl.tar.gz && tar xvzf sccache-0.2.13-x86_64-unknown-linux-musl.tar.gz && cp sccache-0.2.13-x86_64-unknown-linux-musl/sccache /usr/bin/
+
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g $GID -o grapl && adduser --disabled-password --gecos '' --home /grapl --shell /bin/bash --uid $UID --gid $GID grapl
+USER grapl
+WORKDIR /grapl
+
+RUN rustup target add x86_64-unknown-linux-musl

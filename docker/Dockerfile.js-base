@@ -1,0 +1,5 @@
+FROM node:12.18-buster-slim
+
+RUN apt-get update && apt-get -y install --no-install-recommends build-essential libffi-dev libssl-dev python3 zip
+USER node
+WORKDIR /home/node

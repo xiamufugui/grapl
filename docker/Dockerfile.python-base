@@ -1,0 +1,17 @@
+FROM python:3.7-slim-buster
+
+RUN apt-get update && apt-get -y install --no-install-recommends musl-dev protobuf-compiler build-essential zip bash
+
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g $GID -o grapl && \
+  adduser --disabled-password --gecos '' --home /grapl --shell /bin/bash --uid $UID --gid $GID grapl
+USER grapl
+WORKDIR /grapl
+
+ENV PROTOC /usr/bin/protoc
+ENV PROTOC_INCLUDE /usr/include
+
+RUN bash -c "python3 -mvenv venv && source venv/bin/activate && \
+  pip install --upgrade pip && \
+  pip install wheel grpcio chalice hypothesis pytest pytest-xdist"

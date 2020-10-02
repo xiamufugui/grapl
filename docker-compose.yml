@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 services:
 
   #
@@ -59,23 +59,29 @@ services:
   #
 
   grapl-metric-forwarder:
-    image: grapl/grapl-metric-forwarder:${TAG:-latest}
+    image: grapl-rust-build
+    volumes:
+      - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/metric-forwarder:/grapl/metric-forwarder:ro
+    entrypoint: /grapl/metric-forwarder
     tty: false
     environment:
-      - "IS_LOCAL=True"
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
       - RUST_LOG=${RUST_LOG:-ERROR}
     extra_hosts:
       - amazonaws:127.0.0.1
 
   grapl-sysmon-subgraph-generator:
-    image: grapl/grapl-sysmon-subgraph-generator:${TAG:-latest}
+    image: grapl-rust-build
+    volumes:
+      - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/sysmon-subgraph-generator:/grapl/sysmon-subgraph-generator:ro
+    entrypoint: /grapl/sysmon-subgraph-generator
     tty: false
     environment:
-      - "BUCKET_PREFIX=local-grapl"
-      - "IS_LOCAL=True"
+      - BUCKET_PREFIX=local-grapl
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-      - "SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-sysmon-graph-generator-queue"
+      - SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-sysmon-graph-generator-queue
       - RUST_LOG=${RUST_LOG:-ERROR}
     links:
       - s3:minio
@@ -90,14 +96,17 @@ services:
       - grapl-graph-provision
 
   grapl-node-identifier:
-    image: grapl/grapl-node-identifier:${TAG:-latest}
+    image: grapl-rust-build
+    volumes:
+      - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/node-identifier:/node-identifier:ro
+    entrypoint: /node-identifier
     environment:
-      - "BUCKET_PREFIX=local-grapl"
-      - "IS_LOCAL=True"
+      - BUCKET_PREFIX=local-grapl
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
       - RUST_LOG=${RUST_LOG:-ERROR}
-      - "SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-node-identifier-queue"
-      - "GRAPH_MERGER_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-graph-merger-queue"
+      - SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-node-identifier-queue
+      - GRAPH_MERGER_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-graph-merger-queue
       - STATIC_MAPPING_TABLE=local-grapl-static_mapping_table
       - DYNAMIC_SESSION_TABLE=local-grapl-dynamic_session_table
       - PROCESS_HISTORY_TABLE=local-grapl-process_history_table
@@ -123,14 +132,17 @@ services:
       - grapl-dynamodb-provision
 
   grapl-node-identifier-retry-handler:
-    image: grapl/grapl-node-identifier-retry-handler:${TAG:-latest}
+    image: grapl-rust-build
+    volumes:
+      - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/node-identifier-retry-handler:/node-identifier-retry-handler:ro
+    entrypoint: /node-identifier-retry-handler
     environment:
-      - "BUCKET_PREFIX=local-grapl"
-      - "IS_LOCAL=True"
+      - BUCKET_PREFIX=local-grapl
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
       - RUST_LOG=${RUST_LOG:-ERROR}
-      - "SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-node-identifier-retry-queue"
-      - "GRAPH_MERGER_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-graph-merger-queue"
+      - SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-node-identifier-retry-queue
+      - GRAPH_MERGER_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-graph-merger-queue
       - STATIC_MAPPING_TABLE=local-grapl-static_mapping_table
       - DYNAMIC_SESSION_TABLE=local-grapl-dynamic_session_table
       - PROCESS_HISTORY_TABLE=local-grapl-process_history_table
@@ -156,15 +168,18 @@ services:
       - grapl-dynamodb-provision
 
   grapl-graph-merger:
-    image: grapl/grapl-graph-merger:${TAG:-latest}
+    image: grapl-rust-build
+    volumes:
+      - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/graph-merger:/graph-merger:ro
+    entrypoint: /graph-merger
     environment:
-      - "BUCKET_PREFIX=local-grapl"
-      - "IS_LOCAL=True"
+      - BUCKET_PREFIX=local-grapl
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-      - "SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-graph-merger-queue"
-      - "ANALYZER_DISPATCHER_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-dispatcher-queue"
+      - SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-graph-merger-queue
+      - ANALYZER_DISPATCHER_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-dispatcher-queue
       - RUST_LOG=${RUST_LOG:-ERROR}
-      - MG_ALPHAS=http://master_graph:9080
+      - MG_ALPHAS=master_graph:9080
       - "GRAPL_SCHEMA_TABLE=local-grapl-grapl_schema_table"
     tty: false
     links:
@@ -182,13 +197,16 @@ services:
       - grapl-master-graph-db
 
   grapl-analyzer-dispatcher:
-    image: grapl/grapl-analyzer-dispatcher:${TAG:-latest}
+    image: grapl-rust-build
+    volumes:
+      - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/analyzer-dispatcher:/analyzer-dispatcher:ro
+    entrypoint: /analyzer-dispatcher
     environment:
-      - "BUCKET_PREFIX=local-grapl"
-      - "IS_LOCAL=True"
+      - BUCKET_PREFIX=local-grapl
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-      - "SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-dispatcher-queue"
-      - "ANALYZER_EXECUTOR_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-executor-queue"
+      - SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-dispatcher-queue
+      - ANALYZER_EXECUTOR_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-executor-queue
       - RUST_LOG=${RUST_LOG:-ERROR}
     tty: false
     links:
@@ -206,36 +224,40 @@ services:
   # Python services
   #
 
-  # Removed per https://grapl-internal.slack.com/archives/C017PLQ8TCZ/p1601574470186700
-  # Add it back once Analyzer Deployer is ready for prime time!
-  # analyzer-deployer:
-  #   image: grapl/analyzer-deployer:${TAG:-latest}
-  #   command: /bin/sh -c '. venv/bin/activate && cd /home/grapl/app && chalice local --no-autoreload --host=0.0.0.0 --port=8125'
-  #   environment:
-  #     - "IS_LOCAL=True"
-  #     - GRPC_ENABLE_FORK_SUPPORT=1
-  #     - "BUCKET_PREFIX=local-grapl"
-  #     - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-  #   links:
-  #     - s3:minio
-  #     - sqs:sqs.us-east-1.amazonaws.com
-  #   tty: true
-  #   extra_hosts:
-  #     - sqs:127.0.0.1
-  #     - amazonaws:127.0.0.1
-  #     - minio:127.0.0.1
+  analyzer-deployer:
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/analyzer-deployer/venv:/grapl/venv
+      - ./src/python/analyzer-deployer:/grapl/analyzer-deployer
+    entrypoint: /bin/bash -c '. venv/bin/activate && cd /grapl/analyzer-deployer/analyzer_deployer  && chalice local --no-autoreload --host=0.0.0.0 --port=8125'
+    environment:
+      - IS_LOCAL=True
+      - GRPC_ENABLE_FORK_SUPPORT=1
+      - BUCKET_PREFIX=local-grapl
+      - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
+    links:
+      - s3:minio
+      - sqs:sqs.us-east-1.amazonaws.com
+    tty: true
+    extra_hosts:
+      - sqs:127.0.0.1
+      - amazonaws:127.0.0.1
+      - minio:127.0.0.1
 
   grapl-analyzer-executor:
-    image: grapl/grapl-analyzer-executor:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && python3 analyzer_executor/src/analyzer-executor.py'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/analyzer_executor/venv:/grapl/venv
+      - ./src/python/analyzer_executor:/grapl/analyzer_executor
+    entrypoint: /bin/bash -c '. venv/bin/activate && python3 analyzer_executor/src/analyzer-executor.py'
     environment:
-      - "IS_LOCAL=True"
+      - IS_LOCAL=True
       - GRPC_ENABLE_FORK_SUPPORT=1
       - MG_ALPHAS=master_graph:9080
-      - "IS_RETRY=False"
-      - "BUCKET_PREFIX=local-grapl"
+      - IS_RETRY=False
+      - BUCKET_PREFIX=local-grapl
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-      - "SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-executor-queue"
+      - SOURCE_QUEUE_URL=http://sqs.us-east-1.amazonaws.com:9324/queue/grapl-analyzer-executor-queue
     links:
       - s3:minio
       - sqs:sqs.us-east-1.amazonaws.com
@@ -247,11 +269,14 @@ services:
       - minio:127.0.0.1
 
   grapl-engagement-creator:
-    image: grapl/grapl-engagement-creator:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && python3 engagement-creator/src/engagement-creator.py'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/engagement-creator/venv:/grapl/venv
+      - ./src/python/engagement-creator:/grapl/engagement-creator
+    entrypoint: /bin/bash -c '. venv/bin/activate && python3 engagement-creator/src/engagement-creator.py'
     environment:
-      - "IS_LOCAL=True"
-      - "BUCKET_PREFIX=local-grapl"
+      - IS_LOCAL=True
+      - BUCKET_PREFIX=local-grapl
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
       - MG_ALPHAS=master_graph:9080
     tty: true
@@ -265,32 +290,39 @@ services:
       - minio:127.0.0.1
 
   grapl-engagement-edge:
-    image: grapl/grapl-engagement-edge:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && cd /home/grapl/app && chalice local --no-autoreload --host=0.0.0.0 --port=8900'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/engagement_edge/venv:/grapl/venv
+      - ./dist/python/engagement_edge/chalice:/grapl/app
+      - ./src/python/engagement_edge:/grapl/engagement_edge
+    entrypoint: /bin/bash -c '. venv/bin/activate && cd /grapl/app && chalice local --no-autoreload --host=0.0.0.0 --port=8900'
     ports:
       - "8900:8900"
     environment:
-      - "IS_LOCAL=True"
+      - IS_LOCAL=True
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-      - "UX_BUCKET_URL=localhost:3000"
-      - "USER_AUTH_TABLE=local-grapl-user_auth_table"
-      - "BUCKET_PREFIX=local-grapl"
-
+      - UX_BUCKET_URL=localhost:3000
+      - USER_AUTH_TABLE=local-grapl-user_auth_table
+      - BUCKET_PREFIX=local-grapl
     tty: true
     links:
       - grapl-master-graph-db:master_graph
       - secretsmanager:secretsmanager.us-east-1.amazonaws.com
 
   grapl-model-plugin-deployer:
-    image: grapl/grapl-model-plugin-deployer:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && cd /home/grapl/app && chalice local --no-autoreload --host=0.0.0.0 --port=8123'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/grapl-model-plugin-deployer/venv:/grapl/venv
+      - ./dist/python/grapl-model-plugin-deployer/chalice:/grapl/app
+      - ./src/python/grapl-model-plugin-deployer:/grapl/grapl-model-plugin-deployer
+    entrypoint: /bin/bash -c '. venv/bin/activate && cd app && chalice local --no-autoreload --host=0.0.0.0 --port=8123'
     ports:
       - "8123:8123"
     environment:
-      - "IS_LOCAL=True"
-      - "MG_ALPHAS=master_graph:9080"
+      - IS_LOCAL=True
+      - MG_ALPHAS=master_graph:9080
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-      - "UX_BUCKET_URL=localhost"
+      - UX_BUCKET_URL=localhost
     tty: true
     links:
       - s3:minio
@@ -303,12 +335,15 @@ services:
       - minio:127.0.0.1
 
   grapl-dgraph-ttl:
-    image: grapl/grapl-dgraph-ttl:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && cd /home/grapl/app && chalice local --no-autoreload --host=0.0.0.0 --port=8124'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/dgraph-ttl/venv:/grapl/venv
+      - ./src/python/grapl-dgraph-ttl:/grapl/grapl-dgraph-ttl
+    entrypoint: /bin/bash -c '. venv/bin/activate && cd /grapl/grapl-dgraph-ttl && chalice local --no-autoreload --host=0.0.0.0 --port=8124'
     ports:
       - "8124:8124"
     environment:
-      - "IS_LOCAL=True"
+      - IS_LOCAL=True
       - MG_ALPHAS=master_graph:9080
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
       - GRAPL_DGRAPH_TTL_S=${GRAPL_DGRAPH_TTL_S:-31536000}
@@ -319,20 +354,34 @@ services:
     extra_hosts:
       - amazonaws:127.0.0.1
 
+  grapl-notebook:
+    image: jupyter/minimal-notebook
+    volumes:
+      - ./src/python/grapl-notebook/Demo_Engagement.ipynb:/home/jovyan/Demo_Engagement.ipynb
+      - ./src/python/grapl-notebook/jupyter_notebook_config.py:/home/jovyan/.jupyter/Demo_Engagement.ipynb
+    links:
+      - grapl-master-graph-db:master_graph
+    ports:
+      - 8888:8888
+  
   #
   # JS/web services
   #
 
   grapl-engagement-view:
-    image: grapl/grapl-engagement-view:${TAG:-latest}
+    image: syntaqx/serve
+    volumes:
+      - ./dist/js/engagement_view:/var/www
     environment:
       - PORT=1234
     ports:
       - 1234:1234
 
   grapl-graphql-endpoint:
-    image: grapl/grapl-graphql-endpoint:${TAG:-latest}
-    command: yarn start server
+    image: grapl-js-build
+    volumes:
+      - ./dist/js/graphql_endpoint:/home/node/graphql_endpoint
+    entrypoint: bash -c "cd graphql_endpoint && yarn start server"
     environment:
       - MG_ALPHAS=master_graph:9080
       - IS_LOCAL=True
@@ -344,25 +393,20 @@ services:
     ports:
       - 5000:5000
 
-  grapl-notebook:
-    image: grapl/grapl-notebook:${TAG:-latest}
-    links:
-      - grapl-master-graph-db:master_graph
-    ports:
-      - 8888:8888
 
   #
   # Utility services
   #
 
   grapl-graph-provision:
-    image: grapl/grapl-graph-provision:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && python /var/run/target/grapl_provision.py'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/grapl-libs/venv:/grapl/venv
+      - ./etc/local_grapl:/var/run/target/:ro
+    entrypoint: /bin/bash -c '. venv/bin/activate && python /var/run/target/grapl_provision.py'
     environment:
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
       - MG_ALPHAS=master_graph:9080
-    volumes:
-      - ./etc/local_grapl/:/var/run/target/
     tty: true
     links:
       - grapl-master-graph-db:master_graph
@@ -380,12 +424,13 @@ services:
       - sqs
 
   grapl-dynamodb-provision:
-    image: grapl/grapl-dynamodb-provision:${TAG:-latest}
-    command: /bin/sh -c '. venv/bin/activate && python /var/run/target/provision_local_identity_table.py'
+    image: grapl-python-build
+    volumes:
+      - ./dist/python/grapl-libs/venv:/grapl/venv
+      - ./etc/local_grapl/local_dynamodb:/var/run/target/:ro
+    entrypoint: /bin/bash -c '. venv/bin/activate && python /var/run/target/provision_local_identity_table.py'
     environment:
       - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-    volumes:
-      - ./etc/local_grapl/local_dynamodb:/var/run/target/
     tty: false
     links:
       - dynamodb:dynamodb
@@ -393,3 +438,5 @@ services:
       - amazonaws:127.0.0.1
     depends_on:
       - dynamodb
+
+
