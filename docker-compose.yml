@@ -59,7 +59,7 @@ services:
   #
 
   grapl-metric-forwarder:
-    image: grapl-rust-build
+    image: grapl-rust-build:${TAG:-latest}
     volumes:
       - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/metric-forwarder:/grapl/metric-forwarder:ro
     entrypoint: /grapl/metric-forwarder
@@ -72,7 +72,7 @@ services:
       - amazonaws:127.0.0.1
 
   grapl-sysmon-subgraph-generator:
-    image: grapl-rust-build
+    image: grapl-rust-build:${TAG:-latest}
     volumes:
       - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/sysmon-subgraph-generator:/grapl/sysmon-subgraph-generator:ro
     entrypoint: /grapl/sysmon-subgraph-generator
@@ -96,7 +96,7 @@ services:
       - grapl-graph-provision
 
   grapl-node-identifier:
-    image: grapl-rust-build
+    image: grapl-rust-build:${TAG:-latest}
     volumes:
       - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/node-identifier:/node-identifier:ro
     entrypoint: /node-identifier
@@ -132,7 +132,7 @@ services:
       - grapl-dynamodb-provision
 
   grapl-node-identifier-retry-handler:
-    image: grapl-rust-build
+    image: grapl-rust-build:${TAG:-latest}
     volumes:
       - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/node-identifier-retry-handler:/node-identifier-retry-handler:ro
     entrypoint: /node-identifier-retry-handler
@@ -168,7 +168,7 @@ services:
       - grapl-dynamodb-provision
 
   grapl-graph-merger:
-    image: grapl-rust-build
+    image: grapl-rust-build:${TAG:-latest}
     volumes:
       - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/graph-merger:/graph-merger:ro
     entrypoint: /graph-merger
@@ -197,7 +197,7 @@ services:
       - grapl-master-graph-db
 
   grapl-analyzer-dispatcher:
-    image: grapl-rust-build
+    image: grapl-rust-build:${TAG:-latest}
     volumes:
       - ./dist/rust/x86_64-unknown-linux-musl/${GRAPL_RELEASE_TARGET:-debug}/analyzer-dispatcher:/analyzer-dispatcher:ro
     entrypoint: /analyzer-dispatcher
@@ -227,7 +227,7 @@ services:
   # Removed per https://grapl-internal.slack.com/archives/C017PLQ8TCZ/p1601574470186700
   # Add it back once Analyzer Deployer is ready for prime time!
   # analyzer-deployer:
-  #   image: grapl-python-build
+  #   image: grapl-python-build:${TAG:-latest}
   #   volumes:
   #     - ./dist/python/analyzer-deployer/venv:/grapl/venv
   #     - ./src/python/analyzer-deployer:/grapl/analyzer-deployer
@@ -247,7 +247,7 @@ services:
   #     - minio:127.0.0.1
 
   grapl-analyzer-executor:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/analyzer_executor/venv:/grapl/venv
       - ./src/python/analyzer_executor:/grapl/analyzer_executor
@@ -271,7 +271,7 @@ services:
       - minio:127.0.0.1
 
   grapl-engagement-creator:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/engagement-creator/venv:/grapl/venv
       - ./src/python/engagement-creator:/grapl/engagement-creator
@@ -292,7 +292,7 @@ services:
       - minio:127.0.0.1
 
   grapl-engagement-edge:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/engagement_edge/venv:/grapl/venv
       - ./dist/python/engagement_edge/chalice:/grapl/app
@@ -312,7 +312,7 @@ services:
       - secretsmanager:secretsmanager.us-east-1.amazonaws.com
 
   grapl-model-plugin-deployer:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/grapl-model-plugin-deployer/venv:/grapl/venv
       - ./dist/python/grapl-model-plugin-deployer/chalice:/grapl/app
@@ -337,7 +337,7 @@ services:
       - minio:127.0.0.1
 
   grapl-dgraph-ttl:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/dgraph-ttl/venv:/grapl/venv
       - ./src/python/grapl-dgraph-ttl:/grapl/grapl-dgraph-ttl
@@ -380,7 +380,7 @@ services:
       - 1234:1234
 
   grapl-graphql-endpoint:
-    image: grapl-js-build
+    image: grapl-js-build:${TAG:-latest}
     volumes:
       - ./dist/js/graphql_endpoint:/home/node/graphql_endpoint
     entrypoint: bash -c "cd graphql_endpoint && yarn start server"
@@ -401,7 +401,7 @@ services:
   #
 
   grapl-graph-provision:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/grapl-libs/venv:/grapl/venv
       - ./etc/local_grapl:/var/run/target/:ro
@@ -426,7 +426,7 @@ services:
       - sqs
 
   grapl-dynamodb-provision:
-    image: grapl-python-build
+    image: grapl-python-build:${TAG:-latest}
     volumes:
       - ./dist/python/grapl-libs/venv:/grapl/venv
       - ./etc/local_grapl/local_dynamodb:/var/run/target/:ro
