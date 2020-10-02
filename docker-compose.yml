@@ -224,25 +224,27 @@ services:
   # Python services
   #
 
-  analyzer-deployer:
-    image: grapl-python-build
-    volumes:
-      - ./dist/python/analyzer-deployer/venv:/grapl/venv
-      - ./src/python/analyzer-deployer:/grapl/analyzer-deployer
-    entrypoint: /bin/bash -c '. venv/bin/activate && cd /grapl/analyzer-deployer/analyzer_deployer  && chalice local --no-autoreload --host=0.0.0.0 --port=8125'
-    environment:
-      - IS_LOCAL=True
-      - GRPC_ENABLE_FORK_SUPPORT=1
-      - BUCKET_PREFIX=local-grapl
-      - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
-    links:
-      - s3:minio
-      - sqs:sqs.us-east-1.amazonaws.com
-    tty: true
-    extra_hosts:
-      - sqs:127.0.0.1
-      - amazonaws:127.0.0.1
-      - minio:127.0.0.1
+  # Removed per https://grapl-internal.slack.com/archives/C017PLQ8TCZ/p1601574470186700
+  # Add it back once Analyzer Deployer is ready for prime time!
+  # analyzer-deployer:
+  #   image: grapl-python-build
+  #   volumes:
+  #     - ./dist/python/analyzer-deployer/venv:/grapl/venv
+  #     - ./src/python/analyzer-deployer:/grapl/analyzer-deployer
+  #   entrypoint: /bin/bash -c '. venv/bin/activate && cd /grapl/analyzer-deployer/analyzer_deployer  && chalice local --no-autoreload --host=0.0.0.0 --port=8125'
+  #   environment:
+  #     - IS_LOCAL=True
+  #     - GRPC_ENABLE_FORK_SUPPORT=1
+  #     - BUCKET_PREFIX=local-grapl
+  #     - GRAPL_LOG_LEVEL=${GRAPL_LOG_LEVEL:-ERROR}
+  #   links:
+  #     - s3:minio
+  #     - sqs:sqs.us-east-1.amazonaws.com
+  #   tty: true
+  #   extra_hosts:
+  #     - sqs:127.0.0.1
+  #     - amazonaws:127.0.0.1
+  #     - minio:127.0.0.1
 
   grapl-analyzer-executor:
     image: grapl-python-build
