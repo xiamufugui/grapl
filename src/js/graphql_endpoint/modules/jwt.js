@@ -30,7 +30,6 @@ const fetchJwtSecret = async () => {
     const getSecretRes = await secretsmanager.getSecretValue({
         SecretId: JWT_SECRET_ID,
     }).promise();
-
     return getSecretRes.SecretString;
 }
 

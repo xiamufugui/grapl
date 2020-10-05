@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "server": "nodemon server.js"
+    "server": "nodemon server.js",
+    "test": "jest"
   },
   "author": "Grapl Inc.",
   "license": "ISC",
@@ -17,6 +18,7 @@
     "dgraph-js": "^20.3.0",
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
+    "fetch": "^1.1.0",
     "graphql": "^15.0.0",
     "graphql-type-json": "^0.3.1",
     "grpc": "^1.24.3",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "@types/google-protobuf": "^3.7.2",
-    "@types/protobufjs": "^6.0.0"
+    "@types/protobufjs": "^6.0.0",
+    "jest": "^26.4.2"
   }
 }
