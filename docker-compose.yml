@@ -360,7 +360,7 @@ services:
     image: jupyter/minimal-notebook
     volumes:
       - ./src/python/grapl-notebook/Demo_Engagement.ipynb:/home/jovyan/Demo_Engagement.ipynb
-      - ./src/python/grapl-notebook/jupyter_notebook_config.py:/home/jovyan/.jupyter/Demo_Engagement.ipynb
+      - ./src/python/grapl-notebook/jupyter_notebook_config.py:/home/jovyan/jupyter/jupyter_notebook_config.py
     links:
       - grapl-master-graph-db:master_graph
     ports:
