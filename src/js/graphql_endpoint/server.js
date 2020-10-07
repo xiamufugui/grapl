@@ -10,6 +10,7 @@ const {validateJwt} = require('./modules/jwt.js');
 console.log('server.js entrypoint')
 const PORT = process.env.PORT || 5000;
 const IS_LOCAL = (process.env.IS_LOCAL == 'True') || null;  // get this from environment
+const IS_TEST = (process.env.IS_TEST == 'True') || null;  // get this from environment
 
 let origin = true;
 let prefix = 'local-grapl';
@@ -52,8 +53,11 @@ const corsDelegate = (req, callback) => {
     callback(null, corsOptions) // callback expects two parameters: error and options
 }
 
+const middleware = [cors(corsDelegate)];
 
-const middleware = [cors(corsDelegate), validateJwt];
+if (!IS_TEST) {
+    middleware.push(validateJwt)
+}
 
 app.options('*', cors(corsDelegate));
 

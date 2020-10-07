@@ -25,8 +25,10 @@ const getLenses = async (dg_client, first, offset) => {
     try {
         const res = await txn.queryWithVars(
             query, 
-            {'$a': first.toString(), 
-            '$b': offset.toString()}
+            {
+                '$a': first.toString(), 
+                '$b': offset.toString()
+            }
         );
 
         return res.getJson()['all'];
