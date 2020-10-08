@@ -7,9 +7,10 @@ const grpc = require("grpc");
 const createNode = async (node_key, dgraph_type, properties) => {
     const dgraphClient = getDgraphClient();
     const query = `
-    query {
-        node as var(func: eq(node_key, "${node_key}"))
-    }`;
+        query {
+            node as var(func: eq(node_key, "${node_key}"))
+        }
+    `;
 
     let nquads = `
         uid(node) <node_key> "${node_key}" .
@@ -41,6 +42,44 @@ const initializeGraph = async () => {
     createNode("my_node_key_0", "File", [
         ["file_path", "/home/andrea/tests/file.txt"],
     ])
+
+    createNode("lens_node_key_1", "Lens", [
+        ["lens_name", "test_lens"]    
+    ])
+}
+
+
+const fetchGraphQl = async (query) => {
+    // const loginRes = await login('grapluser', 'graplpassword');
+
+    try {
+        const res = await fetch(`http://localhost:5000/graphql`,
+        {
+            method: 'post',
+            body: JSON.stringify({ query: query }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        })
+        .then(res => {
+            // console.log(res);
+            return res
+        })
+        .then(res => res.json())
+        .then(res => {
+            console.log('retrieveGraph res', res);
+            return res
+        })
+        .then((res) =>  res.data);
+        
+        return await res;
+    } catch (e) {
+        console.log("Unable to fetch GraphQL endpoint", e);
+        return e; 
+    }
+
+    
 }
 
 
@@ -64,47 +103,45 @@ const getProcess = async (queryArgs, propertiesToFetch) => {
         args = `(${queryArgs})`;
     } 
     const query = `
-    {
-        process${args} {
-            ... on Process {
-                ${propertiesToFetch}    
-            }
-        }    
-    }
-    `;
-
-    return (await fetchGraphQl(query));
-}
-
-const fetchGraphQl = async (query) => {
-    // const loginRes = await login('grapluser', 'graplpassword');
-
-    const res = await fetch(`http://localhost:5000/graphql`,
         {
-            method: 'post',
-            body: JSON.stringify({ query }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        })
-        .then(res => {
-            // console.log(res);
-            return res
-        })
-        .then(res => res.json())
-        .then(res => {
-            console.log('retrieveGraph res', res);
-            return res
-        })
-        .then((res) => res.data);
-    return await res;
+            process${args} {
+                ... on Process {
+                    ${propertiesToFetch}    
+                }
+            }    
+        }
+    `;
+    const res = await fetchGraphQl(query)
+    return res;
 }
+
+const getLens = async (queryArgs, propertiesToFetch) => {
+    let args = '';
+    if (queryArgs){
+        args = `(${queryArgs})`;
+    }
+
+    const query = `
+        {
+            lens_scope${args}{
+                ... on LensNode {
+                    ${propertiesToFetch}
+                }
+            }
+        }
+    `
+    const res = await fetchGraphQl(query);
+    return res;
+}
+
+// getLens('lens_name: "test_lens"', 'uid, lens_name');
+
 
 
 // query each type
 
 module.exports = {
     getProcess,
+    getLens,
     initializeGraph,
 }

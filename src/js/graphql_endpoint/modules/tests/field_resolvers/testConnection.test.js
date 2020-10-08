@@ -1,4 +1,4 @@
-const { initializeGraph, getProcess } = require('./testFunctions.js');
+const { initializeGraph, getProcess, getLens } = require('./testFunctions.js');
 
 beforeAll(async () => {
     return await initializeGraph();
@@ -9,10 +9,19 @@ test('GraphQL Test Suite Running', () => {
     expect('true').toBe('true')
 })
 
-// test('Test GraphQL Server Running', async () => {
-//     expect(await testConnection()).toBeTruthy();
-// })
+// Given a Lens Node
+// When we query for any lens 
+// we should recieve that lens node
+test('Test GraphQL Get Lens, With Args', async () => {
+    const lensResponse = await getLens('lens_name: "test_lens"', 'uid, lens_name');
+    console.log("lensResponse", lensResponse);
+    expect(lensResponse).toBeTruthy();
 
+    const lens = lensResponse.lens_scope;
+
+    expect((typeof lens.uid) === 'number').toBe(true);
+    expect((typeof lens.lens_name) === 'string').toBe(true);
+})
 
 // Given a process in our database
 // When we query for any process
@@ -34,12 +43,11 @@ test('Test GraphQL Get Process With Pid', async () => {
     const process = processResponse.process;
     validateBaseNode(process);
     expect((typeof process.process_id) === 'number').toBe(true);
-
 })
 
 
 const validateBaseNode = (node) => {
-
+    console.log("Node", node)
     expect(node.uid).toBeTruthy();
     expect((typeof node.uid) === 'number').toBe(true);
     
