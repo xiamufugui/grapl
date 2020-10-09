@@ -46,6 +46,10 @@ const initializeGraph = async () => {
     createNode("lens_node_key_1", "Lens", [
         ["lens_name", "test_lens"]    
     ])
+
+    createNode("lenses_node_key", "Lenses", [
+        [ "node_key", "test_lenses"]
+    ])
 }
 
 
@@ -68,11 +72,10 @@ const fetchGraphQl = async (query) => {
         })
         .then(res => res.json())
         .then(res => {
-            console.log('retrieveGraph res', res);
+            // console.log('retrieveGraph res', res);
             return res
         })
         .then((res) =>  res.data);
-        
         return await res;
     } catch (e) {
         console.log("Unable to fetch GraphQL endpoint", e);
@@ -134,14 +137,35 @@ const getLens = async (queryArgs, propertiesToFetch) => {
     return res;
 }
 
-// getLens('lens_name: "test_lens"', 'uid, lens_name');
+const getLenses = async (queryArgs, propertiesToFetch) => {
+    let args = '';
 
+    if (queryArgs){
+        args = `(${queryArgs})`;
+    }
 
+    const query = `
+        {
+            lenses${args}{
+                ... on Lenses { 
+                    lenses{
+                        ${propertiesToFetch}
+                    }
+                }
+            }  
+        }
+    `
+    const res = await fetchGraphQl(query);
+    
+    return res.lenses.lenses[0];
+}
 
+getLenses(`first:${100}, offset:${0}`, 'uid, node_key')
 // query each type
 
 module.exports = {
     getProcess,
     getLens,
+    getLenses,
     initializeGraph,
 }

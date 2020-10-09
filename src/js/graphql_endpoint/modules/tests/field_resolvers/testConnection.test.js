@@ -1,4 +1,4 @@
-const { initializeGraph, getProcess, getLens } = require('./testFunctions.js');
+const { initializeGraph, getProcess, getLens, getLenses } = require('./testFunctions.js');
 
 beforeAll(async () => {
     return await initializeGraph();
@@ -9,12 +9,9 @@ test('GraphQL Test Suite Running', () => {
     expect('true').toBe('true')
 })
 
-// Given a Lens Node
-// When we query for any lens 
-// we should recieve that lens node
 test('Test GraphQL Get Lens, With Args', async () => {
     const lensResponse = await getLens('lens_name: "test_lens"', 'uid, lens_name');
-    console.log("lensResponse", lensResponse);
+    // console.log("lensResponse", lensResponse);
     expect(lensResponse).toBeTruthy();
 
     const lens = lensResponse.lens_scope;
@@ -23,9 +20,6 @@ test('Test GraphQL Get Lens, With Args', async () => {
     expect((typeof lens.lens_name) === 'string').toBe(true);
 })
 
-// Given a process in our database
-// When we query for any process
-// Then we should receive that process
 test('Test GraphQL Get Process No Args', async () => {
     const processResponse = await getProcess('', 'uid, node_key');
     expect(processResponse).toBeTruthy();
@@ -35,7 +29,7 @@ test('Test GraphQL Get Process No Args', async () => {
     validateBaseNode(process);
 })
 
-test('Test GraphQL Get Process With Pid', async () => {
+test('Test GraphQL Get Process With PID', async () => {
     const processResponse = await getProcess('process_id: 1234', 'uid, node_key, process_id');
     expect(processResponse).toBeTruthy();
     expect(processResponse.process).toBeTruthy();
@@ -45,12 +39,16 @@ test('Test GraphQL Get Process With Pid', async () => {
     expect((typeof process.process_id) === 'number').toBe(true);
 })
 
+test('Test GraphQL Lenses Query', async() => {
+    const lensesResponse = await getLenses(`first:${10}, offset:${0}`, 'uid, node_key');
+    expect(lensesResponse).toBeTruthy();
+    expect((typeof lensesResponse.uid === 'number')).toBe(true);
+    console.log(lensesResponse);
+})
 
 const validateBaseNode = (node) => {
-    console.log("Node", node)
     expect(node.uid).toBeTruthy();
     expect((typeof node.uid) === 'number').toBe(true);
-    
     expect(node.node_key).toBeTruthy();
     expect((typeof node.node_key) === 'string').toBe(true);
 }
