@@ -40,9 +40,17 @@ test('Test GraphQL Get Process With PID', async () => {
 })
 
 test('Test GraphQL Lenses Query', async() => {
-    const lensesResponse = await getLenses(`first:${10}, offset:${0}`, 'uid, node_key');
+    const args = `first:${10}, offset:${0}`;
+    const properties = 'uid, node_key, dgraph_type, lens_name, score, lens_type';
+    const lensesResponse = await getLenses(args, properties );
+    
     expect(lensesResponse).toBeTruthy();
     expect((typeof lensesResponse.uid === 'number')).toBe(true);
+    expect((typeof lensesResponse.dgraph_type[0] === 'string')).toBe(true);
+    expect((typeof lensesResponse.lens_name === 'string')).toBe(true);
+    expect((typeof lensesResponse.score === 'number')).toBe(true);
+    expect((typeof lensesResponse.lens_type === 'string')).toBe(true);
+
     console.log(lensesResponse);
 })
 

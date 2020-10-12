@@ -48,7 +48,11 @@ const initializeGraph = async () => {
     ])
 
     createNode("lenses_node_key", "Lenses", [
-        [ "node_key", "test_lenses"]
+        ["node_key", "test_lenses"],
+        ["dgraph_type", "file"],
+        ["lens_name", "test_lens"],
+        ["score", 90],
+        ["lens_type", "file"]
     ])
 }
 
@@ -156,12 +160,9 @@ const getLenses = async (queryArgs, propertiesToFetch) => {
         }
     `
     const res = await fetchGraphQl(query);
-    
     return res.lenses.lenses[0];
 }
 
-getLenses(`first:${100}, offset:${0}`, 'uid, node_key')
-// query each type
 
 module.exports = {
     getProcess,
