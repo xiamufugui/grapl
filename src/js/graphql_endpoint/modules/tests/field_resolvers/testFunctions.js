@@ -1,7 +1,6 @@
 const fetch = require("node-fetch");
 const { getDgraphClient } = require ('../../dgraph_client');
 const dgraph = require("dgraph-js");
-const grpc = require("grpc");
 
 
 const createNode = async (node_key, dgraph_type, properties) => {
@@ -34,16 +33,19 @@ const createNode = async (node_key, dgraph_type, properties) => {
 
 const initializeGraph = async () => {
 
-    createNode("my_node_key", "Process", [
-        ["process_id", "1234"],
+    createNode("process_key", "Process", [
         ["process_name", "chrome.exe"],
+        ["node_key", "test_process"],
+        ["image_name", "image.jpg"],
+        ["process_id", 1234]
+        ["arguments", "args"],
     ])
 
-    createNode("my_node_key_0", "File", [
+    createNode("file_key", "File", [
         ["file_path", "/home/andrea/tests/file.txt"],
     ])
 
-    createNode("lens_node_key_1", "Lens", [
+    createNode("lens_node_key", "Lens", [
         ["lens_name", "test_lens"]    
     ])
 
@@ -88,7 +90,6 @@ const fetchGraphQl = async (query) => {
 
     
 }
-
 
 // const testConnection = async () => {
 //     let response = await fetch(
