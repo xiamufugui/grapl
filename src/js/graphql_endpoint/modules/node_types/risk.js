@@ -4,10 +4,10 @@ const {
     GraphQLString, 
 }  = require('graphql');
 
-const RiskType = new GraphQLObjectType({
+module.exports.RiskType = new GraphQLObjectType({
     name: 'Risk',
     fields: () => {
-        const { BaseNode } = require('./base_node.js');
+        const BaseNode = require('./base_node.js').BaseNode;
 
         return {
             ...BaseNode,
@@ -17,9 +17,6 @@ const RiskType = new GraphQLObjectType({
     }
 })
 
-module.exports = {
-    RiskType
-}
 
 
 

@@ -1,19 +1,17 @@
 const { 
     GraphQLObjectType, 
     GraphQLString, 
-    GraphQLList
 }  = require('graphql');
 
-
-const AssetType = new GraphQLObjectType(
+module.exports.AssetType = new GraphQLObjectType(
     {
         name: 'Asset',
         fields: () => {
-            const { BaseNode } = require('./base_node.js');
-            const { defaultRisksResolver } = require('../default_field_resolvers/risk_resolver.js');
-            const { defaultIpAddressesResolver } = require('../default_field_resolvers/ip_address_resolver.js');
-            const { defaultFilesResolver } = require('../default_field_resolvers/file_resolver.js');
-            const { defaultProcessesResolver } = require('../default_field_resolvers/process_resolver.js');
+            const BaseNode  = require('./base_node.js').BaseNode;
+            const defaultRisksResolver  = require('../default_field_resolvers/risk_resolver.js').defaultRisksResolver;
+            const defaultIpAddressesResolver = require('../default_field_resolvers/ip_address_resolver.js').defaultIpAddressesResolver;
+            const defaultFilesResolver = require('../default_field_resolvers/file_resolver.js').defaultFilesResolver;
+            const defaultProcessesResolver = require('../default_field_resolvers/process_resolver.js').defaultProcessesResolver;
 
             return {
                 ...BaseNode,
@@ -26,7 +24,3 @@ const AssetType = new GraphQLObjectType(
         }
     }
 );
-
-module.exports = {
-    AssetType
-}

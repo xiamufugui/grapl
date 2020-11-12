@@ -1,10 +1,11 @@
-const { getDgraphClient } = require('../../dgraph_client.js');
-const { getLensByName, inLensScope } = require('./lenses');
-const { getNeighborsFromNode, getRisksFromNode } = require('./node.js');
+const getDgraphClient = require('../../dgraph_client.js').getDgraphClient;
+const getLensByName = require('./lenses').getLensByName;
+const inLensScope = require('./lenses').inLensScope;
+const getNeighborsFromNode = require('./node.js').getNeighborsFromNode;
+const getRisksFromNode = require('./node.js').getRisksFromNode;
+const builtins = require('../../node_types/grapl_entity.js').builtins;
 
-const { builtins } = require('../../node_types/grapl_entity.js');
-
-const handleLensScope = async (parent, args) => {
+module.exports.handleLensScope = async (parent, args) => {
     const dg_client = getDgraphClient();
 
     const lens_name = args.lens_name;
@@ -102,9 +103,4 @@ const handleLensScope = async (parent, args) => {
     lens.uid = parseInt(lens.uid, 16);
     return lens
 
-}
-
-
-module.exports = {
-    handleLensScope
 }

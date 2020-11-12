@@ -4,9 +4,11 @@ const {
     GraphQLString, 
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-const { RiskType } = require('../node_types/risk.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
+
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const riskArgs = () => {
     return {
@@ -22,7 +24,9 @@ const riskFilters = (args) => {
         ['risk_score', args.risk_score, 'int'],
     ]
 }
-const defaultRiskResolver = (edgeName) => {
+module.exports.defaultRiskResolver = (edgeName) => {
+    const RiskType = require('../node_types/risk.js').RiskType;
+
     return {
         type: RiskType,
         args: riskArgs(),
@@ -35,7 +39,9 @@ const defaultRiskResolver = (edgeName) => {
     };
 };
 
-const defaultRisksResolver = (edgeName) => {
+module.exports.defaultRisksResolver = (edgeName) => {
+    const RiskType = require('../node_types/risk.js').RiskType;
+
     return {
         type: GraphQLList(RiskType),
         args: riskArgs(),
@@ -53,8 +59,3 @@ const defaultRisksResolver = (edgeName) => {
         }
     };
 };
-
-module.exports = {
-    defaultRiskResolver,
-    defaultRisksResolver
-}

@@ -45,7 +45,7 @@ const fetchJwtSecret = async () => {
     }
 })();
 
-const verifyToken = async (jwtToken) => {
+module.exports.verifyToken = async (jwtToken) => {
     if (!JWT_SECRET) {
         JWT_SECRET = await fetchJwtSecret();
     }
@@ -60,7 +60,7 @@ const verifyToken = async (jwtToken) => {
 };
 
 
-const validateJwt = async (req, res, next) => {
+module.exports.validateJwt = async (req, res, next) => {
     const headers = req.headers;
     let encoded_jwt = null
 
@@ -88,9 +88,4 @@ const validateJwt = async (req, res, next) => {
         console.warn('Failed to verify token ', headers)
         return res.sendStatus(403)
     }
-}
-
-module.exports = {
-    validateJwt,
-    verifyToken,
 }

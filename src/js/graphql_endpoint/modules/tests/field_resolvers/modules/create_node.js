@@ -1,7 +1,7 @@
-const { getDgraphClient } = require ('../../../dgraph_client');
+const getDgraphClient = require ('../../../dgraph_client').getDgraphClient;
 const dgraph = require("dgraph-js");
 
-const create_node = async (node_key, dgraph_type, properties) => {
+module.exports.create_node = async (node_key, dgraph_type, properties) => {
     const dgraphClient = getDgraphClient();
     const query = `
         query {
@@ -28,6 +28,3 @@ const create_node = async (node_key, dgraph_type, properties) => {
     await dgraphClient.newTxn().doRequest(req);
 }
 
-module.exports = {
-    create_node, 
-}

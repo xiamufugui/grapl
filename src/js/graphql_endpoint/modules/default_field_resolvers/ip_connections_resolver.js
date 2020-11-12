@@ -4,9 +4,11 @@ const {
     GraphQLList,
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-const { IpConnections } = require('../node_types/ip_connections.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
+
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const ipConnectionsArgs = () => {
     return {
@@ -33,7 +35,9 @@ const ipConnectionsFilters = (args) => {
 }
 
 
-const defaultIpConnectionResolver = (edgeName) => {
+module.exports.defaultIpConnectionResolver = (edgeName) => {
+    const IpConnections = require('../node_types/ip_connections.js').IpConnections;
+
     return {
         type: IpConnections,
         args: ipConnectionsArgs(),
@@ -46,7 +50,9 @@ const defaultIpConnectionResolver = (edgeName) => {
     };
 };
 
-const defaultIpConnectionsResolver = (edgeName) => {
+module.exports.defaultIpConnectionsResolver = (edgeName) => {
+    const IpConnections = require('../node_types/ip_connections.js').IpConnections;
+
     return {
         type: GraphQLList(IpConnections),
         args: ipConnectionsArgs(),
@@ -58,8 +64,3 @@ const defaultIpConnectionsResolver = (edgeName) => {
         }
     };
 };
-
-module.exports = {
-    defaultIpConnectionResolver,
-    defaultIpConnectionsResolver
-}

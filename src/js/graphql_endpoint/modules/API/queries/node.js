@@ -1,8 +1,12 @@
-const {VarAllocator, varTypeList, reverseMap, generateFilter} = require('../../var_allocator.js')
+const VarAllocator = require('../../var_allocator.js').VarAllocator;
+const varTypeList = require('../../var_allocator.js').varTypeList;
+const reverseMap = require('../../var_allocator.js').reverseMap;
+const generateFilter = require('../../var_allocator.js').generateFilter;
+
 // function to build field resolver 
 // predicates - property filters to apply to target node 
 
-const getNode = async (dg_client, typeName, predicates) => {
+module.exports.getNode = async (dg_client, typeName, predicates) => {
     // varAlloc - DGraph Variables
     const varAlloc = new VarAllocator();
     
@@ -60,7 +64,7 @@ const getNode = async (dg_client, typeName, predicates) => {
 
 }
 
-const getNeighborsFromNode = async (dg_client, nodeUid) => {
+module.exports.getNeighborsFromNode = async (dg_client, nodeUid) => {
     const query = `
     query all($a: string)
     {
@@ -84,7 +88,7 @@ const getNeighborsFromNode = async (dg_client, nodeUid) => {
     }
 }
 
-const getRisksFromNode = async (dg_client, nodeUid) => {
+module.exports.getRisksFromNode = async (dg_client, nodeUid) => {
     if (!nodeUid) {
         console.warn('nodeUid can not be null, undefined, or empty')
         return
@@ -113,12 +117,4 @@ const getRisksFromNode = async (dg_client, nodeUid) => {
     } finally {
         await txn.discard();
     }
-}
-
-
-
-module.exports = {
-    getNode,
-    getNeighborsFromNode,
-    getRisksFromNode
 }

@@ -4,12 +4,13 @@ const {
     GraphQLString,  
 }  = require('graphql');
 
-const { defaultIpPortsResolver } = require('../default_field_resolvers/ip_port_resolver.js');
 
-const ProcessOutboundConnections = new GraphQLObjectType ({
+
+module.exports.ProcessOutboundConnections = new GraphQLObjectType ({
     name: 'ProcessOutboundConnections',
     fields: () => {
-        const { BaseNode } = require('./base_node.js');
+        const BaseNode = require('./base_node.js').BaseNode;
+        const defaultIpPortsResolver = require('../default_field_resolvers/ip_port_resolver.js').defaultIpPortsResolver;
         
         return {
             ...BaseNode,
@@ -24,7 +25,3 @@ const ProcessOutboundConnections = new GraphQLObjectType ({
         }
     }
 })
-
-module.exports = {
-    ProcessOutboundConnections,
-}

@@ -1,6 +1,6 @@
-const { fetch_graphql } = require('../fetch_graphql');
+const fetch_graphql = require('../fetch_graphql').fetch_graphql;
 
-const get_process = async (queryArgs, propertiesToFetch) => {
+module.exports.get_process = async (queryArgs, propertiesToFetch) => {
     let args = '';
     if (queryArgs) {
         args = `(${queryArgs})`;
@@ -14,10 +14,7 @@ const get_process = async (queryArgs, propertiesToFetch) => {
             }    
         }
     `;
-    const res = await fetch_graphql(query)
+    const res = await fetch_graphql(query);
     return res;
 }
 
-module.exports = {
-    get_process
-}

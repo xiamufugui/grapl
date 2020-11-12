@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getDgraphClient } = require ('../../dgraph_client');
+const getDgraphClient = require ('../../dgraph_client').getDgraphClient;
 const dgraph = require("dgraph-js");
 
 
@@ -30,8 +30,7 @@ const createNode = async (node_key, dgraph_type, properties) => {
     await dgraphClient.newTxn().doRequest(req);
 
 }
-
-const initializeGraph = async () => {
+module.exports.initializeGraph = async () => {
 
     createNode("process_key", "Process", [
         ["process_name", "chrome.exe"],
@@ -105,7 +104,7 @@ const fetchGraphQl = async (query) => {
 // }
 
 
-const getProcess = async (queryArgs, propertiesToFetch) => {
+module.exports.getProcess = async (queryArgs, propertiesToFetch) => {
     let args = '';
     if (queryArgs) {
         args = `(${queryArgs})`;
@@ -123,7 +122,7 @@ const getProcess = async (queryArgs, propertiesToFetch) => {
     return res;
 }
 
-const getLens = async (queryArgs, propertiesToFetch) => {
+module.exports.getLens = async (queryArgs, propertiesToFetch) => {
     let args = '';
     if (queryArgs){
         args = `(${queryArgs})`;
@@ -142,7 +141,7 @@ const getLens = async (queryArgs, propertiesToFetch) => {
     return res;
 }
 
-const getLenses = async (queryArgs, propertiesToFetch) => {
+module.exports.getLenses = async (queryArgs, propertiesToFetch) => {
     let args = '';
 
     if (queryArgs){
@@ -164,10 +163,3 @@ const getLenses = async (queryArgs, propertiesToFetch) => {
     return res.lenses.lenses[0];
 }
 
-
-module.exports = {
-    getProcess,
-    getLens,
-    getLenses,
-    initializeGraph,
-}

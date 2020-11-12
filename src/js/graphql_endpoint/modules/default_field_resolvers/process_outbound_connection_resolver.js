@@ -4,10 +4,11 @@ const {
     GraphQLList, 
 }  = require('graphql');
 
-const {ProcessOutboundConnections} = require('../node_types/process_outbound_connections.js');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdges, expandTo } = require('../API/queries/edge.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdges = require('../API/queries/edge.js').getEdges;
+
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const processOutboundConnectionsFilters = (args) => {
     return [
@@ -32,7 +33,9 @@ const processOutboundConnectionsArgs = () => {
     }
 }
 
-const defaultProcessOutboundConnectionsResolver = (edgeName) => {
+module.exports.defaultProcessOutboundConnectionsResolver = (edgeName) => {
+    const ProcessOutboundConnections = require('../node_types/process_outbound_connections.js').ProcessOutboundConnections;
+
     return {
         type: GraphQLList(ProcessOutboundConnections),
         args: processOutboundConnectionsArgs(),
@@ -45,7 +48,7 @@ const defaultProcessOutboundConnectionsResolver = (edgeName) => {
     }
 }
 
-const defaultProcessOutboundConnectionResolver = (edgeName) => {
+module.exports.defaultProcessOutboundConnectionResolver = (edgeName) => {
     return {
         type: ProcessOutboundConnections,
         args: processOutboundConnectionsArgs(),
@@ -56,9 +59,4 @@ const defaultProcessOutboundConnectionResolver = (edgeName) => {
             return expanded; 
         }
     }
-}
-
-module.exports = { 
-    defaultProcessOutboundConnectionsResolver,
-    defaultProcessOutboundConnectionResolver
 }

@@ -4,7 +4,6 @@ const {
     GraphQLList, 
 }  = require('graphql');
 
-const { IpPort } = require('../node_types/ip_port.js');
 
 const ipPortArgs = () => {
     return {
@@ -26,7 +25,9 @@ const ipPortFilters = (args) => {
     ]
 }
 
-const defaultIpPortResolver = (edgeName) => {
+module.exports.defaultIpPortResolver = (edgeName) => {
+    const IpPort = require('../node_types/ip_port.js').IpPort;
+
     return {
         type: IpPort,
         args: ipPortArgs(),
@@ -40,7 +41,9 @@ const defaultIpPortResolver = (edgeName) => {
     }
 };
 
-const defaultIpPortsResolver = (edgeName) => {
+module.exports.defaultIpPortsResolver = (edgeName) => {
+    const IpPort = require('../node_types/ip_port.js').IpPort;
+
     return {
         type: GraphQLList(IpPort),
         args: ipPortArgs(),
@@ -54,8 +57,3 @@ const defaultIpPortsResolver = (edgeName) => {
     }
 };
 
-
-module.exports = {
-    defaultIpPortResolver,
-    defaultIpPortsResolver
-}

@@ -4,10 +4,11 @@ const {
     GraphQLList, 
 }  = require('graphql');
 
-const { expandTo, getEdge, getEdges } = require('../API/queries/edge.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { FileType } = require('../node_types/file.js');
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const fileFilters = (args) => {
     return [
@@ -54,7 +55,9 @@ const fileArgs = () => {
 }
 
 
-const defaultFileResolver = (edgeName) => {
+module.exports.defaultFileResolver = (edgeName) => {
+    const FileType  = require('../node_types/file.js').FileType;
+
     return {
         type: FileType,
         args: fileArgs(),
@@ -68,8 +71,9 @@ const defaultFileResolver = (edgeName) => {
     }
 } 
 
-
-const defaultFilesResolver = (edgeName) => {
+module.exports.defaultFilesResolver = (edgeName) => {
+    const FileType  = require('../node_types/file.js').FileType;
+    
     return {
         type: GraphQLList(FileType),
         args: fileArgs(),
@@ -83,7 +87,3 @@ const defaultFilesResolver = (edgeName) => {
     }
 } 
 
-module.exports = {
-    defaultFileResolver,
-    defaultFilesResolver,
-}

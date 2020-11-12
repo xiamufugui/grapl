@@ -5,24 +5,23 @@ const {
     GraphQLNonNull
 }  = require('graphql');
 
-const { LensNodeType } = require('../node_types/lens_node.js');
-const { ProcessType } = require('../node_types/process.js');
-
-const { 
-    UnexpectedError, 
-    QueryTookTooLongError 
-} = require('../errors.js');
+const LensNodeType = require('../node_types/lens_node.js').LensNodeType;
+const ProcessType  = require('../node_types/process.js').ProcessType;
+const UnexpectedError = require('../errors.js').UnexpectedError;
+const QueryTookTooLongError = require('../errors.js').QueryTookTooLongError;
 
 const Lenses = new GraphQLObjectType({
     name: 'Lenses',
-    fields: {
-        lenses: {
-            type: GraphQLNonNull(GraphQLList(GraphQLNonNull(LensNodeType)))
+    fields: () => {
+        return {
+            lenses: {
+                type: GraphQLNonNull(GraphQLList(GraphQLNonNull(LensNodeType)))
+            }
         }
-    },
+    }
 })
 
-const LensWithErrors = new GraphQLUnionType({
+module.exports.LensWithErrors = new GraphQLUnionType({
     name: 'LensWithErrors',
     types: [ UnexpectedError, QueryTookTooLongError, Lenses],
     resolveType (value){
@@ -32,7 +31,7 @@ const LensWithErrors = new GraphQLUnionType({
     }
 });
 
-const LensScopeWithErrors = new GraphQLUnionType({
+module.exports.LensScopeWithErrors = new GraphQLUnionType({
     name: 'LensScopeWithErrors',
     types: [ UnexpectedError, QueryTookTooLongError, LensNodeType],
     resolveType (value){
@@ -44,18 +43,10 @@ const LensScopeWithErrors = new GraphQLUnionType({
 
 const resolveProcessResponseType = (node) => {
     return 'Process';
-
 }
 
-const ProcessWithErrors = new GraphQLUnionType({
+module.exports.ProcessWithErrors = new GraphQLUnionType({
     name: 'ProcessWithErrors', 
     types: [ UnexpectedError, QueryTookTooLongError, ProcessType],
     resolveType: resolveProcessResponseType
-
 })
-
-module.exports = {
-    LensWithErrors,
-    LensScopeWithErrors,
-    ProcessWithErrors
-}

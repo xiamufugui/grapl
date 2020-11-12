@@ -4,8 +4,11 @@ const {
     GraphQLList,
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdges, getEdge, expandTo } = require('../API/queries/edge.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
+
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const processArgs = () => {
     return {
@@ -25,8 +28,9 @@ const processFilters = (args) => {
     ]
 }
 
-const defaultProcessResolver = (edgeName) => {
-    const { ProcessType } = require('../node_types/process.js');
+
+module.exports.defaultProcessResolver = (edgeName) => {
+    const ProcessType = require('../node_types/process.js').ProcessType;
 
     return {
         type: ProcessType,
@@ -37,8 +41,9 @@ const defaultProcessResolver = (edgeName) => {
     }
 }
 
-const defaultProcessesResolver =  (edgeName) => {
-    const { ProcessType } = require('../node_types/process.js');
+
+module.exports.defaultProcessesResolver =  (edgeName) => {
+    const ProcessType = require('../node_types/process.js').ProcessType;
 
     return {
         type: GraphQLList(ProcessType),
@@ -47,9 +52,4 @@ const defaultProcessesResolver =  (edgeName) => {
             return await expandTo(getDgraphClient(), parent.uid, edgeName, processFilters(args), getEdges);
         }
     }
-}
-
-module.exports = {
-    defaultProcessResolver,
-    defaultProcessesResolver,
 }

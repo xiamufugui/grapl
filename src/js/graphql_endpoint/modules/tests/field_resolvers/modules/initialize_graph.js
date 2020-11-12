@@ -1,6 +1,6 @@
-const { create_node } = require('./create_node');
+const create_node = require('./create_node').create_node;
 
-const initialize_graph = async () => {
+module.exports.initialize_graph = async () => {
 
     create_node("process_key", "Process", [
         ["process_name", "chrome.exe"],
@@ -25,8 +25,4 @@ const initialize_graph = async () => {
         ["score", 90],
         ["lens_type", "file"]
     ])
-}
-
-module.exports = {
-    initialize_graph
 }

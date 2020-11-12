@@ -1,12 +1,8 @@
 const { 
-    GraphQLInt, 
-    GraphQLString, 
-    GraphQLList, 
     GraphQLUnionType, 
-    GraphQLNonNull,
 }  = require('graphql');
 
-const builtins = new Set([
+module.exports.builtins = new Set([
     'Process',
     'File',
     'IpAddress',
@@ -55,20 +51,15 @@ const resolveType = (data) => {
 
 // ## TODO - ADD ALL NON-DYNAMIC TYPES  
     
-const GraplEntityType = new GraphQLUnionType({
+module.exports.GraplEntityType = new GraphQLUnionType({
     name: 'GraplEntityType',
     types: () => {
-        const { PluginType } = require('./plugin.js');
-        const { FileType } = require('./file.js');
-        const { ProcessType } = require('./process.js'); 
-        const { AssetType } = require('./asset.js');
+        const PluginType = require('./plugin.js').PluginType;
+        const FileType = require('./file.js').FileType;
+        const ProcessType = require('./process.js').ProcessType; 
+        const AssetType = require('./asset.js').AssetType;
 
         return [ PluginType, FileType, ProcessType, AssetType ]
     },
     resolveType: resolveType
 });
-
-module.exports = { 
-    GraplEntityType,
-    builtins
-};

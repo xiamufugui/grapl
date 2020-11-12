@@ -3,10 +3,11 @@ const {
     GraphQLList,
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-const { IpAddressType } = require('../node_types/ip_address.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
 
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const ipAddressArgs = () => {
     return {
@@ -14,13 +15,15 @@ const ipAddressArgs = () => {
     }
 }
 
-const ipAddressFilters = (args) => {
+module.exports.ipAddressFilters = (args) => {
     return [
         ['ip_address', args.ip_address, 'string']
     ]
 }
 
-const defaultIpAddressResolver = (edgeName) => {
+module.exports.defaultIpAddressResolver = (edgeName) => {
+    const IpAddressType = require('../node_types/ip_address.js').IpAddressType;
+
     return {
         type: IpAddressType,
         args: ipAddressArgs(),
@@ -36,7 +39,9 @@ const defaultIpAddressResolver = (edgeName) => {
     };
 };
 
-const defaultIpAddressesResolver = (edgeName) => {
+module.exports.defaultIpAddressesResolver = (edgeName) => {
+    const IpAddressType = require('../node_types/ip_address.js').IpAddressType;
+
     return {
         type: GraphQLList(IpAddressType),
         args: ipAddressArgs(),
@@ -53,7 +58,3 @@ const defaultIpAddressesResolver = (edgeName) => {
 };
 
 
-module.exports = {
-    defaultIpAddressResolver,
-    defaultIpAddressesResolver,
-}

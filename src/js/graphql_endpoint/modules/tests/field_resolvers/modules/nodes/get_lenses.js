@@ -1,6 +1,6 @@
-const { fetch_graphql } = require("../fetch_graphql");
+const fetch_graphql = require("../fetch_graphql").fetch_graphql;
 
-const get_lenses = async (query_args, properties_to_fetch) => {
+module.exports.get_lenses = async (query_args, properties_to_fetch) => {
     let args = '';
 
     if (query_args){
@@ -22,6 +22,3 @@ const get_lenses = async (query_args, properties_to_fetch) => {
     return res.lenses.lenses[0];
 }
 
-module.exports = {
-    get_lenses
-}

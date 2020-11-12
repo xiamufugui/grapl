@@ -1,4 +1,3 @@
-const { BaseNode } = require('./base_node.js');
 
 const { 
     GraphQLObjectType, 
@@ -8,12 +7,12 @@ const {
     GraphQLBoolean,
 }  = require('graphql');
 
-const FileType = new GraphQLObjectType({
+module.exports.FileType = new GraphQLObjectType({
     name : 'File',
     fields : () => {
-        const { RiskType } = require('./risk.js');
-        const { defaultProcessResolver } = require('../default_field_resolvers/process_resolver.js');
-        const { defaultRisksResolver } = require('../default_field_resolvers/risk_resolver.js');
+        const BaseNode = require('./base_node.js').BaseNode;
+        const defaultProcessResolver = require('../default_field_resolvers/process_resolver.js').defaultProcessResolver;
+        const defaultRisksResolver = require('../default_field_resolvers/risk_resolver.js').defaultRisksResolver;
 
         return {
             ...BaseNode,
@@ -49,7 +48,3 @@ const FileType = new GraphQLObjectType({
 //     }
 // }
 
-
-module.exports = {
-    FileType,
-}

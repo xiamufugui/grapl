@@ -1,12 +1,10 @@
 const { 
     GraphQLObjectType, 
-    GraphQLInt, 
     GraphQLString, 
-    GraphQLUnionType, 
     GraphQLNonNull
 }  = require('graphql');
 
-const QueryTookTooLongError = new GraphQLObjectType({
+module.exports.QueryTookTooLongError = new GraphQLObjectType({
     name : 'QueryTookTooLong',
     fields : () => ({
         errorMessage: {type: GraphQLNonNull(GraphQLString)},
@@ -14,15 +12,10 @@ const QueryTookTooLongError = new GraphQLObjectType({
     })
 })
 
-const UnexpectedError = new GraphQLObjectType({
+module.exports.UnexpectedError = new GraphQLObjectType({
     name : 'UnexpectedError',
     fields : () => ({
         errorMessage: {type: GraphQLNonNull(GraphQLString)},
     })
 })
-
-module.exports = { 
-    QueryTookTooLongError,  
-    UnexpectedError
-}
 

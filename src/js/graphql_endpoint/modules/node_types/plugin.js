@@ -4,14 +4,12 @@ const {
     GraphQLObjectType, 
 }  = require('graphql');
 
-const PluginType = new GraphQLObjectType({
+module.exports.PluginType = new GraphQLObjectType({
     name: 'PluginType',
-    fields: {
-        predicates: { type: GraphQLJSONObject },
+    fields: () => {
+        return {
+            predicates: { type: GraphQLJSONObject },
+        }
     }
 })
 
-
-module.exports = {
-    PluginType
-}

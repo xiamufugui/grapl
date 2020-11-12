@@ -2,14 +2,13 @@ const {
     GraphQLObjectType, 
     GraphQLInt, 
     GraphQLString, 
-    GraphQLList, 
 }  = require('graphql');
 
 
-const NetworkConnection = new GraphQLObjectType({
+module.exports.NetworkConnection = new GraphQLObjectType({
     name: 'NetworkConnection',
     fields: () => {
-        const { defaultIpPortResolver } = require('../default_field_resolvers/ip_port_resolver.js');
+        const defaultIpPortResolver = require('../default_field_resolvers/ip_port_resolver.js').defaultIpPortResolver;
 
         return{
             src_ip_address: {type: GraphQLString}, 
@@ -24,6 +23,3 @@ const NetworkConnection = new GraphQLObjectType({
     }
 }) 
 
-module.exports = {
-    NetworkConnection
-}

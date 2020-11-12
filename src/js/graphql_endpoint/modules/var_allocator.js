@@ -1,4 +1,4 @@
-class VarAllocator {
+module.exports.VarAllocator =  class VarAllocator {
     constructor() {
         // Map from predicate_name to var
         this.vars = new Map();
@@ -35,7 +35,7 @@ class VarAllocator {
 }
 
 
-const generateFilter = (varAlloc) => {
+module.exports.generateFilter = (varAlloc) => {
     const filters = [];
     for (const entry of varAlloc.nameToVar.entries()) {
         filters.push(`eq(${entry[0]}, ${entry[1]})`)
@@ -44,7 +44,7 @@ const generateFilter = (varAlloc) => {
 }
 
 
-const varTypeList = (varAlloc) => {
+module.exports.varTypeList = (varAlloc) => {
     const typedPairs = [];
     for (const entry of varAlloc.vars.entries()) {
         typedPairs.push(`${entry[0]}:${entry[1]}`)
@@ -53,7 +53,7 @@ const varTypeList = (varAlloc) => {
     return typedPairs.join(", ")
 }
 
-const reverseMap = (map) => {
+module.exports.reverseMap = (map) => {
     const output = {};
     for (const entry of map.entries()) {
         output[entry[1]] = entry[0];
@@ -61,9 +61,3 @@ const reverseMap = (map) => {
     return output
 }
 
-module.exports = {
-    VarAllocator,
-    generateFilter,
-    varTypeList,
-    reverseMap
-}

@@ -5,7 +5,7 @@ const schema = require('./modules/schema.js');
 const cors = require('cors');
 const app = express();
 const awsServerlessExpress = require('aws-serverless-express')
-const {validateJwt} = require('./modules/jwt.js');
+const validateJwt = require('./modules/jwt.js').validateJwt;
 
 console.log('server.js entrypoint')
 const PORT = process.env.PORT || 5000;

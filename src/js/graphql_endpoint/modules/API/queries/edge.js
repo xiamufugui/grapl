@@ -1,6 +1,9 @@
-const {VarAllocator, varTypeList, reverseMap, generateFilter} = require('../../var_allocator.js')
+const VarAllocator = require('../../var_allocator.js').VarAllocator;
+const varTypeList = require('../../var_allocator.js').varTypeList;
+const reverseMap = require('../../var_allocator.js').reverseMap;
+const generateFilter = require('../../var_allocator.js').generateFilter;
 
-const getEdge = async (dg_client, rootUid, edgeName, predicates) => {
+module.exports.getEdge = async (dg_client, rootUid, edgeName, predicates) => {
     // varAlloc - DGraph Variables
     const varAlloc = new VarAllocator();
     
@@ -65,7 +68,7 @@ const getEdge = async (dg_client, rootUid, edgeName, predicates) => {
 
 }
 
-const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
+module.exports.getEdges = async (dg_client, rootUid, edgeName, predicates) => {
     // varAlloc - DGraph Variables
     const varAlloc = new VarAllocator();
     
@@ -129,7 +132,7 @@ const getEdges = async (dg_client, rootUid, edgeName, predicates) => {
 
 }
 
-const expandTo = async (dgraphClient, parentUid, edgeName, filters, expandFn) => {
+module.exports.expandTo = async (dgraphClient, parentUid, edgeName, filters, expandFn) => {
     try{
         console.log('fetching edge', edgeName, ' of: ', parentUid, ' with ', filters);
         const edge = await expandFn(
@@ -145,12 +148,4 @@ const expandTo = async (dgraphClient, parentUid, edgeName, filters, expandFn) =>
         console.log("e", e)
         return 0; 
     }
-}
-
-
-
-module.exports = {
-    getEdge,
-    getEdges,
-    expandTo,
 }

@@ -1,6 +1,6 @@
-const { initialize_graph } = require('../modules/initialize_graph');
-const { get_process } = require('../modules/nodes/get_process');
-const { validate_base_node } = require('../modules/nodes/validate_base_node');
+const initialize_graph = require('../modules/initialize_graph').initialize_graph;
+const get_process = require('../modules/nodes/get_process').get_process;
+const validate_base_node = require('../modules/nodes/validate_base_node').validate_base_node;
 
 beforeAll(async () => {
     return await initialize_graph();

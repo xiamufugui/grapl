@@ -1,5 +1,5 @@
-const { initialize_graph } = require('../modules/initialize_graph.js');
-const { get_lenses } = require('../modules/nodes/get_lenses.js');
+const initialize_graph = require('../modules/initialize_graph.js').initialize_graph;
+const get_lenses = require('../modules/nodes/get_lenses.js').get_lenses;
 
 beforeAll(async () => {
     return await initialize_graph();

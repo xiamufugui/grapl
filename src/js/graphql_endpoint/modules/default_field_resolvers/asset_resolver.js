@@ -3,9 +3,10 @@ const {
     GraphQLList,
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-const { AssetType } = require('../node_types/asset.js');
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
+const expandTo = require('../API/queries/edge.js').expandTo;
 
 const assetArgs = () => {
     return {
@@ -19,7 +20,8 @@ const assetFilters = (args) => {
     ]
 };
 
-const defaultAssetResolver = (edgeName) => {
+module.exports.defaultAssetResolver = (edgeName) => {
+    const AssetType = require('../node_types/asset.js').AssetType;
     return {
         type: AssetType,
         args: assetArgs(),
@@ -27,12 +29,14 @@ const defaultAssetResolver = (edgeName) => {
             console.log("expanding defaultAssetResolver");
             const expanded = await expandTo(getDgraphClient(), parent.uid, edgeName, assetFilters(args), getEdge);
             console.log ("expanded defaultAssetResolver", expanded);
-            return expanded
+            return expanded;
         }
     };
 };
 
-const defaultAssetsResolver = (edgeName) => {
+module.exports.defaultAssetsResolver = (edgeName) => {
+    const AssetType = require('../node_types/asset.js').AssetType;
+
     return {
         type: GraphQLList(AssetType),
         args: assetArgs(),
@@ -46,7 +50,3 @@ const defaultAssetsResolver = (edgeName) => {
 };
 
 
-module.exports = {
-    defaultAssetsResolver,
-    defaultAssetResolver,
-}

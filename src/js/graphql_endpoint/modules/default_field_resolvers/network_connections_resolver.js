@@ -4,10 +4,11 @@ const {
     GraphQLList,
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-const { NetworkConnection } = require('../node_types/process_inbound_connections.js')
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
 
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const networkConnectionArgs = () => {
     return {
@@ -34,7 +35,9 @@ const networkConnectionFilters = (args) => {
 }
 
 
-const defaultNetworkConnectionResolver = (edgeName) => {
+module.exports.defaultNetworkConnectionResolver = (edgeName) => {
+    const NetworkConnection = require('../node_types/process_inbound_connections.js').NetworkConnection;
+
     return {
         type: NetworkConnection,
         args: networkConnectionArgs(),
@@ -47,8 +50,9 @@ const defaultNetworkConnectionResolver = (edgeName) => {
     };
 };
 
-const defaultNetworkConnectionsResolver = (edgeName) => {
-    const { NetworkConnection } = require('../node_types/network_connection.js');
+module.exports.defaultNetworkConnectionsResolver = (edgeName) => {
+    const NetworkConnection = require('../node_types/network_connection.js').NetworkConnection;
+    
     return {
         type: GraphQLList(NetworkConnection),
         args: networkConnectionArgs(),
@@ -59,9 +63,4 @@ const defaultNetworkConnectionsResolver = (edgeName) => {
             return expanded
         }
     };
-}
-
-module.exports = {
-    defaultNetworkConnectionResolver,
-    defaultNetworkConnectionsResolver
 }

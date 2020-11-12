@@ -7,7 +7,7 @@ const get_random = (list) => {
 
 const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
 
-const getDgraphClient = () => {
+module.exports.getDgraphClient = () => {
     const clientStub = new dgraph.DgraphClientStub(
         // addr: optional, default: "localhost:9080"
         mg_alpha,
@@ -16,8 +16,4 @@ const getDgraphClient = () => {
     );
 
     return new dgraph.DgraphClient(clientStub);
-}
-
-module.exports = {
-    getDgraphClient
 }

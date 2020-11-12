@@ -1,4 +1,4 @@
-const getLenses = async (dg_client, first, offset) => {
+module.exports.getLenses = async (dg_client, first, offset) => {
     // console.log("first offset", first, offset);
     const query = `
         query all($a: int, $b: int)
@@ -38,7 +38,7 @@ const getLenses = async (dg_client, first, offset) => {
 }
 
 // return lens
-const getLensByName = async (dg_client, lensName) => {
+module.exports.getLensByName = async (dg_client, lensName) => {
     const query = `
     query all($a: string, $b: first, $c: offset)
         {
@@ -69,7 +69,7 @@ const getLensByName = async (dg_client, lensName) => {
     }
 }
 
-const inLensScope = async (dg_client, nodeUid, lensUid) => {
+module.exports.inLensScope = async (dg_client, nodeUid, lensUid) => {
 
     const query = `
     query all($a: string, $b: string)
@@ -95,9 +95,3 @@ const inLensScope = async (dg_client, nodeUid, lensUid) => {
     }
 }
 
-
-module.exports = {
-    getLenses,
-    getLensByName,
-    inLensScope
-}

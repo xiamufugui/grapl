@@ -4,9 +4,11 @@ const {
     GraphQLList,
 }  = require('graphql');
 
-const { getDgraphClient } = require('../dgraph_client.js');
-const { getEdge, getEdges, expandTo } = require('../API/queries/edge.js');
-const { LensNode } = require('../node_types/lens_node.js');
+const expandTo = require('../API/queries/edge.js').expandTo;
+const getEdge = require('../API/queries/edge.js').getEdge;
+const getEdges = require('../API/queries/edge.js').getEdges;
+
+const getDgraphClient = require('../dgraph_client.js').getDgraphClient;
 
 const lensNodeArgs = () => {
     return {
@@ -24,7 +26,9 @@ const lensNodeFilters = (args) => {
     ]
 }
 
-const defaultLensNodeResolver = (edgeName) => {
+module.exports.defaultLensNodeResolver = (edgeName) => {
+    const LensNode = require('../node_types/lens_node.js').LensNodeType;
+
     return {
         type: LensNode,
         args: lensNodeArgs(),
@@ -39,7 +43,9 @@ const defaultLensNodeResolver = (edgeName) => {
 };
 
 
-const defaultLensNodesResolver = (edgeName) => {
+module.exports.defaultLensNodesResolver = (edgeName) => {
+    const LensNode = require('../node_types/lens_node.js').LensNodeType;
+
     return {
         type: GraphQLList(LensNode),
         args: lensNodeArgs(),
@@ -49,12 +55,5 @@ const defaultLensNodesResolver = (edgeName) => {
             console.log ("expanded defaultLensNodesResolver", expanded);
             return expanded;
         }
-    
     }
 };
-
-
-module.exports = {
-    defaultLensNodeResolver,
-    defaultLensNodesResolver
-}
