@@ -11,10 +11,11 @@ const {
     GraphQLObjectType, 
     GraphQLInt, 
     GraphQLString, 
-    GraphQLNonNull
+    GraphQLNonNull,
+    GraphQLSchema
 }  = require('graphql');
 
-module.exports.RootQuery = new GraphQLObjectType({
+const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType', 
     fields: () => {
         return {
@@ -87,3 +88,7 @@ module.exports.RootQuery = new GraphQLObjectType({
         }
     }
 })
+
+module.exports = new GraphQLSchema({
+    query: RootQuery
+});
