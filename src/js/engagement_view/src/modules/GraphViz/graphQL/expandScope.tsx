@@ -64,8 +64,11 @@ export const retrieveGraph = async (lens: string): Promise<(LensScopeResponse & 
         .then((res) => res.lens_scope);
 
     const lensWithScope = await res;
+
     console.log('LensWithScope: ', lensWithScope);
+    
     unpackPluginNodes(lensWithScope.scope);
+    
     return lensWithScope;
 };
 
@@ -93,7 +96,14 @@ export const expandScope = (lensName: string) => {
                                 dgraph_type,
                                 process_name, 
                                 process_id,
-                            }, 
+                                risks {  
+                                    uid,
+                                    dgraph_type,
+                                    node_key, 
+                                    analyzer_name, 
+                                    risk_score
+                                }
+                            },
                             risks {  
                                 uid,
                                 dgraph_type,
@@ -111,7 +121,7 @@ export const expandScope = (lensName: string) => {
                             asset_ip{
                                 ip_address
                             }, 
-                            asset_processes{
+                            asset_processes(process_name: "${lensName}"){
                                 uid, 
                                 node_key, 
                                 dgraph_type,
@@ -145,11 +155,9 @@ export const expandScope = (lensName: string) => {
                                 risk_score
                             },
                         }
-        
                         ... on PluginType {
                             predicates,
                         }
-        
                 }
             }
         }
