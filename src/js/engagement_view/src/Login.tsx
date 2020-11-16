@@ -32,6 +32,7 @@ export const checkLogin = async (): Promise<boolean | null> => {
     );
 
     const body = await res.json();
+    console.log("body", body)
 
     return (body['success'] === 'True')
   } catch (e) {

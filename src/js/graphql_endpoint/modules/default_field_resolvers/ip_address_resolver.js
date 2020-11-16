@@ -30,11 +30,11 @@ module.exports.defaultIpAddressResolver = (edgeName) => {
         resolve: async(parent, args) => {
             console.log("expanding defaultIpAddressResolver");
 
-            const expanded = await expandTo(getDgraphClient(), parent.uid, edgeName, ipAddressFilters(args), getEdge);
+            const expanded = await expandTo(getDgraphClient(), parent.uid, edgeName, ipAddressFilters.ipAddressFilters(args), getEdge);
 
             console.log ("expanded defaultIpAddressResolver", expanded);
             
-            return expanded
+            return expanded;
         }
     };
 };
@@ -48,13 +48,11 @@ module.exports.defaultIpAddressesResolver = (edgeName) => {
         resolve: async(parent, args) => {
             console.log("expanding defaultIpAddressesResolver");
 
-            const expanded = await expandTo(getDgraphClient(), parent.uid, edgeName, ipAddressFilters(args), getEdges);
+            const expanded = await expandTo(getDgraphClient(), parent.uid, edgeName, ipAddressFilters.ipAddressFilters(args), getEdges);
 
             console.log ("expanded defaultIpAddressesResolver", expanded);
             
-            return expanded
+            return expanded;
         }
     };
 };
-
-
