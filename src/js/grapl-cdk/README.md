@@ -99,7 +99,7 @@ sudo systemctl enable docker.service
 sudo systemctl start docker.service
 sudo usermod -a -G docker ec2-user
 sudo su ec2-user
-cd
+cd $HOME
 
 # The Grapl deployment name we used in the CDK
 GRAPL_DEPLOYMENT=<YOUR_DEPLOYMENT>
@@ -135,13 +135,41 @@ SWARM_SUBNET_ID=$(curl http://169.254.169.254/latest/meta-data/network/interface
 
 # spin up ec2 resources with docker-machine
 # see https://dgraph.io/docs//deploy/multi-host-setup/#cluster-setup-using-docker-swarm
-alias dm='/usr/local/bin/docker-machine create --driver "amazonec2" --amazonec2-private-address-only --amazonec2-vpc-id "$SWARM_VPC_ID" --amazonec2-security-group "$SWARM_SECURITY_GROUP" --amazonec2-keypair-name "$KEYPAIR_NAME" --amazonec2-ssh-keypath "$HOME/docker-machine-key.pem" --amazonec2-subnet-id "$SWARM_SUBNET_ID" --amazonec2-instance-type "t3a.medium" --amazonec2-region "$AWS_DEFAULT_REGION"'
+# Grapl has been tested to run on AMIs described as "Ubuntu Server 18.04 LTS (HVM), SSD Volume Type" amd64.
+# The command below will search for the latest version of that AMI:
+# aws ec2 describe-images --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64*" --query 'Images[*].[ImageId,CreationDate]' --output text  | sort -k2 -r | head -n1 | cut -f1
+#
+# To perform your own search for which AMI to use, we recommend using the EC2
+# launch wizard from the EC2 Console. For more information see on this and
+# alernative methods of findings AMI:
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html#finding-an-ami-console
+# EC2_AMI=ami-08b277333b9511393 # us-east-1
+# EC2_AMI=ami-0b9e40918b9df07e4 # us-east-2
+# EC2_AMI=ami-07c65a94ab66b122e # us-west-1
+# EC2_AMI=ami-08f6a7b1c02ad4ece # us-west-2
+# For now, just use latest for current region:
+EC2_AMI=$(aws ec2 describe-images --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64*" --query 'Images[*].[ImageId,CreationDate]' --output text  | sort -k2 -r | head -n1 | cut -f1)
+EC2_INSTANCE_TYPE=i3.xlarge
+alias dm-create='
+  /usr/local/bin/docker-machine create \
+  --driver "amazonec2" \
+  --amazonec2-private-address-only \
+  --amazonec2-vpc-id "$SWARM_VPC_ID" \
+  --amazonec2-security-group "$SWARM_SECURITY_GROUP" \
+  --amazonec2-keypair-name "$KEYPAIR_NAME" \
+  --amazonec2-ssh-keypath "$HOME/docker-machine-key.pem" \
+  --amazonec2-subnet-id "$SWARM_SUBNET_ID" \
+  --amazonec2-instance-type "$EC2_INSTANCE_TYPE" \
+  --amazonec2-region "$AWS_DEFAULT_REGION" \
+  --amazonec2-ami "$EC2_AMI" \
+  --amazonec2-ssh-user ubuntu \
+  --amazonec2-tags "grapl-dgraph,$GRAPL_DEPLOYMENT"'
 export AWS01_NAME=${GRAPL_DEPLOYMENT}-aws01
 export AWS02_NAME=${GRAPL_DEPLOYMENT}-aws02
 export AWS03_NAME=${GRAPL_DEPLOYMENT}-aws03
-dm "$AWS01_NAME"
-dm "$AWS02_NAME"
-dm "$AWS03_NAME"
+dm-create "$AWS01_NAME"
+dm-create "$AWS02_NAME"
+dm-create "$AWS03_NAME"
 
 #
 # refer to the DGraph docs for more details about the rest of the setup
@@ -165,13 +193,19 @@ docker swarm join --token $WORKER_JOIN_TOKEN "$AWS01_IP:2377"
 eval $(docker-machine env "$AWS03_NAME" --shell sh)
 docker swarm join --token $WORKER_JOIN_TOKEN "$AWS01_IP:2377"
 
-# get DGraph compose template
+for m in $AWS01_NAME $AWS02_NAME $AWS03_NAME; do
+    docker-machine ssh $m 'sudo mkdir /dgraph && sudo mkfs -t xfs /dev/nvme0n1 && sudo mount -t xfs /dev/nvme0n1 /dgraph'
+    docker-machine ssh $m 'UUID=$(sudo lsblk -o +UUID | grep nvme0n1 | rev | cut -d" " -f1 | rev); echo -e "UUID=$UUID\t/dgraph\txfs\tdefaults,nofail\t0 2" | sudo tee -a /etc/fstab'
+done
+
+# get DGraph configs
 cd $HOME
-wget https://github.com/grapl-security/grapl/raw/staging/src/js/grapl-cdk/docker-compose-multi.yml
+wget https://github.com/grapl-security/grapl/raw/staging/src/js/grapl-cdk/dgraph/docker-compose-dgraph.yml
+wget https://github.com/grapl-security/grapl/raw/staging/src/js/grapl-cdk/dgraph/envoy.yaml
 
 # start DGraph
 eval $(docker-machine env "$AWS01_NAME" --shell sh)
-docker stack deploy -c docker-compose-multi.yml dgraph
+docker stack deploy -c docker-compose-dgraph.yml dgraph
 
 # add A records to route53 to make the alpha nodes discoverable
 AWS02_IP=$(docker-machine ip "$AWS02_NAME")
