@@ -134,14 +134,14 @@ module.exports.getEdges = async (dg_client, rootUid, edgeName, predicates) => {
 
 module.exports.expandTo = async (dgraphClient, parentUid, edgeName, filters, expandFn) => {
     try{
-        console.log('fetching edge', edgeName, ' of: ', parentUid, ' with ', filters);
+        console.log('Fetching edge: ', edgeName, ' of parentUid: ', parentUid, ' with filters: ', filters);
         const edge = await expandFn(
             dgraphClient,
             parentUid,
             edgeName,
             filters,
         )
-        console.log('Found edge', edgeName, ' of: ', parentUid, edgeName);
+        console.log('Found edge: ', edgeName, ' of parentUid: ', parentUid, 'with edgeName: ', edgeName);
         return edge; 
         
     } catch (e) {

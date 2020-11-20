@@ -233,6 +233,7 @@ const getLenses = async (first: number, offset: number): Promise<GetLensesRespon
         }
     `;
 
+
     const res = await fetch(`${graphql_edge}graphql`,
         {
             method: 'post',
@@ -254,6 +255,7 @@ const getLenses = async (first: number, offset: number): Promise<GetLensesRespon
         .then((res) => res.data);
 
         const jres = await res;
+        console.log("JRes", jres)
     return jres;
 };
 
