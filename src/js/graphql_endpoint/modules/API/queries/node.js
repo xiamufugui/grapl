@@ -66,19 +66,21 @@ module.exports.getNode = async (dg_client, typeName, predicates) => {
 
 module.exports.getNeighborsFromNode = async (dg_client, nodeUid) => {
     const query = `
-    query all($a: string)
-    {
-        all(func: uid($a), first: 1)
+        query all($a: string)
         {
-            uid,
-            dgraph_type
-            expand(_all_) {
+            all(func: uid($a), first: 1)
+            {
                 uid,
-                dgraph_type: dgraph.type,
-                expand(_all_)
+                dgraph_type
+                expand(_all_) {
+                    uid,
+                    dgraph_type: dgraph.type,
+                    expand(_all_)
+                }
             }
         }
-    }`;
+    `;
+
     const txn = dg_client.newTxn();
     try {
         const res = await txn.queryWithVars(query, {'$a': nodeUid});
@@ -112,18 +114,20 @@ module.exports.getRisksFromNode = async (dg_client, nodeUid) => {
         }
     `;
 
+
     const txn = dg_client.newTxn();
     
     try {
         const res = await txn.queryWithVars(query, {'$a': nodeUid});
         console.log("res", res.getJson())
+
+        const json = res.getJson()['all'];
         
-        if(res.getJson()[all] === []){
-            return 'no risks'
+        if(json === [] || json[0] === undefined){
+            return [];
             
         }
-        
-        return res.getJson()['all'][0]['risks']; 
+        return json[0]['risks']; 
         
     } finally {
         await txn.discard();
