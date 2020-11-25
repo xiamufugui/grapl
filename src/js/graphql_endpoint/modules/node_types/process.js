@@ -100,7 +100,7 @@ module.exports.getChildren = async (dg_client, parentUid, childrenFilters) => {
 
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
-        const parent = res.getJson()['process'][0];
+        const parent = res.data['process'][0];
 
         if (!parent) {
             return []

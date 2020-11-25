@@ -30,8 +30,7 @@ module.exports.getLenses = async (dg_client, first, offset) => {
                 '$b': offset.toString()
             }
         );
-
-        return res.getJson()['all'];
+        return res.data['all'];
     } finally {
         await txn.discard();
     }
@@ -63,7 +62,8 @@ module.exports.getLensByName = async (dg_client, lensName) => {
     
     try {
         const res = await txn.queryWithVars(query, {'$a': lensName});
-        return res.getJson()['all'][0];
+        console.log("res",res)
+        return res.data['all'][0];
     } finally {
         await txn.discard();
     }
@@ -88,8 +88,8 @@ module.exports.inLensScope = async (dg_client, nodeUid, lensUid) => {
         const res = await txn.queryWithVars(query, {
             '$a': nodeUid, '$b': lensUid
         });
-        const json_res = res.getJson();
-        return json_res['all'].length !== 0;
+
+        return res.data['all'].length !== 0;
     } finally {
         await txn.discard();
     }

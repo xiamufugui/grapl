@@ -52,7 +52,7 @@ module.exports.getScopes = async (dgraphClient, rootUid, lensName) => {
 
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
-        const root_node = res.getJson()['q'];
+        const root_node = res.data['q'];
         console.log('getScopes res', root_node);
         
         if (!root_node) {

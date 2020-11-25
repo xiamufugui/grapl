@@ -50,7 +50,7 @@ module.exports.getNode = async (dg_client, typeName, predicates) => {
 
     try {
         const res = await txn.queryWithVars(query, reverseMap(varAlloc.vars));
-        const root_node = res.getJson()['q'];
+        const root_node = ['q'];
 
         if (!root_node) {
             return null
@@ -84,7 +84,7 @@ module.exports.getNeighborsFromNode = async (dg_client, nodeUid) => {
     const txn = dg_client.newTxn();
     try {
         const res = await txn.queryWithVars(query, {'$a': nodeUid});
-        return res.getJson()['all'][0];
+        return res.data['all'][0];
     } finally {
         await txn.discard();
     }
@@ -119,9 +119,9 @@ module.exports.getRisksFromNode = async (dg_client, nodeUid) => {
     
     try {
         const res = await txn.queryWithVars(query, {'$a': nodeUid});
-        console.log("res", res.getJson())
+        console.log("res", res)
 
-        const json = res.getJson()['all'];
+        const json = res.data['all'];
         
         if(json === [] || json[0] === undefined){
             return [];
