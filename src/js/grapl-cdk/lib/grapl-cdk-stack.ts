@@ -75,6 +75,53 @@ class SysmonGraphGenerator extends cdk.NestedStack {
     }
 }
 
+interface OSQueryGraphGeneratorProps extends GraplServiceProps {
+    writesTo: s3.IBucket;
+}
+
+class OSQueryGraphGenerator extends cdk.NestedStack {
+    constructor(
+        parent: cdk.Construct,
+        id: string,
+        props: OSQueryGraphGeneratorProps
+    ) {
+        super(parent, id);
+
+        const bucket_prefix = props.prefix.toLowerCase();
+        const osquery_log = new EventEmitter(
+            this,
+            bucket_prefix + '-osquery-log'
+        );
+
+        const event_cache = new RedisCluster(this, 'OSQueryEventCache', props);
+        event_cache.connections.allowFromAnyIpv4(ec2.Port.allTcp());
+
+        const service = new Service(this, id, {
+            prefix: props.prefix,
+            environment: {
+                BUCKET_PREFIX: bucket_prefix,
+                EVENT_CACHE_ADDR: event_cache.cluster.attrRedisEndpointAddress,
+                EVENT_CACHE_PORT: event_cache.cluster.attrRedisEndpointPort,
+            },
+            vpc: props.vpc,
+            reads_from: osquery_log.bucket,
+            subscribes_to: osquery_log.topic,
+            writes_to: props.writesTo,
+            version: props.version,
+            watchful: props.watchful,
+            metric_forwarder: props.metricForwarder,
+        });
+
+        service.event_handler.connections.allowToAnyIpv4(
+            ec2.Port.tcp(parseInt(event_cache.cluster.attrRedisEndpointPort))
+        );
+
+        service.event_retry_handler.connections.allowToAnyIpv4(
+            ec2.Port.tcp(parseInt(event_cache.cluster.attrRedisEndpointPort))
+        );
+    }
+}
+
 export interface NodeIdentifierProps extends GraplServiceProps {
     writesTo: s3.IBucket;
 }
@@ -890,7 +937,13 @@ export class GraplCdkStack extends cdk.Stack {
             ...enableMetricsProps,
         });
 
-        new EngagementNotebook(this, 'engagements', {
+        new OSQueryGraphGenerator(this, 'osquery-subgraph-generator', {
+            writesTo: node_identifier.bucket,
+            ...graplProps,
+            ...enableMetricsProps,
+        });
+
+        const engagement_notebook = new EngagementNotebook(this, 'engagements', {
             model_plugins_bucket,
             ...graplProps,
         });
@@ -898,7 +951,10 @@ export class GraplCdkStack extends cdk.Stack {
         this.engagement_edge = new EngagementEdge(
             this,
             'EngagementEdge',
-            graplProps
+            {
+                ...graplProps, 
+                engagement_notebook: engagement_notebook
+            },
         );
 
         const ux_bucket = new s3.Bucket(this, 'EdgeBucket', {
