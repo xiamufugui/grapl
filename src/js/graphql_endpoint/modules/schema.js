@@ -33,13 +33,14 @@ const RootQuery = new GraphQLObjectType({
                     const first = args.first;
                     const offset = args.offset; 
                     // #TODO: Make sure to validate that 'first' is under a specific limit, maybe 1000
+                    // #TODO: make this look like other nodes (ref. process)
                     try {
                         const lenses =  await getLenses(getDgraphClient(), first, offset);
                         console.log('lenses', lenses);
                         return {lenses};
                     } catch (e) {
                         console.log("Error: Lenses Query Failed ", e);
-                        return errMsgs(500, 'Lenses')
+                        return;
                     }
                     
                 } 
@@ -47,15 +48,28 @@ const RootQuery = new GraphQLObjectType({
             lens_scope:{
                 type: LensScopeWithErrors,
                 args: {
-                    lens_name: {type: new GraphQLNonNull(GraphQLString)}
+                    lens_name: {type: new GraphQLNonNull(GraphQLString)},
+                    score: {type: new GraphQLInt()},
+                    lens_type: {type: new GraphQLString()}
                 },
                 resolve: async (parent, args) => {
                     try {
-                        console.log("handleLensScope")
-                        return await handleLensScope(parent, args);
+                        // console.log("handleLensScope")
+                        // return await handleLensScope(parent, args);
+                        const lens = await getNode(
+                            getDgraphClient(), 
+                            'Lens',
+                            [
+                                ['lens_name', args.lens_name, 'string'],
+                                ['score', args.score, 'int'],
+                                ['lens_type', args.lens_type, 'string']
+                            ]
+                        );
+                        console.log("lens", lens)
+                        return lens; 
                     } catch (e) { 
                         console.log("Error: Lens Scope Query Failed ", e);
-                        return errMsgs(500, 'Lens Scope'); 
+                        return;
                     }
                 }
             },

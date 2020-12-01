@@ -13,7 +13,6 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableRow from "@material-ui/core/TableRow";
 import { Alert } from '@material-ui/lab';
 
-
 import { Lens } from "../modules/GraphViz/CustomTypes";
 import { getGraphQlEdge } from "../modules/GraphViz/engagement_edge/getApiURLs";
 
@@ -127,6 +126,7 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
                 getLenses(state.first, state.offset)
                     .then(
                         (response) => {
+                            console.debug("GraphQL Response", response);
                             if (response.lenses && (response.lenses.lenses !== state.lenses)) {
                                 const lenses = state.lenses.concat(response.lenses.lenses);
                                 setState({
@@ -143,7 +143,7 @@ function ToggleLensTable( {setLens}: ToggleLensTableProps ) {
                     }
                 )
             }, 
-            1000
+            10000
         );
 
         return () => clearInterval(interval);
@@ -245,53 +245,20 @@ const getLenses = async (first: number, offset: number): Promise<GetLensesRespon
         })
         .then(res => res.json())
         .then(res => {
+            console.log("Res", res)
             if (res.errors) {
                 console.error("lenses failed", res.errors);
                 // console.log("res.data", res.data)
-                res.data = {lenses: []};
+                res.data = { lenses: [] };
             }
             return res
         })
         .then((res) => res.data);
 
         const jres = await res;
-        console.log("JRes", jres)
+        console.log("JRes", jres);
     return jres;
 };
-
-const getProcessByID = async(id: number) => {
-    const processQuery = `
-        process(process_id: ${id}) {
-            node_key, 
-            process_name, 
-            children,
-        }
-    `
-    const res = await 
-    fetch(`${graphql_edge}graphql`,
-        {
-            method: 'post',
-            body: JSON.stringify({query: processQuery}),
-            headers: {
-                'Content-Type': 'application/json',
-            }, 
-            credentials: 'include',
-        }
-    ) 
-    .then(res => res.json())
-    .then(res => {
-        console.log("res", res)
-        if (res.errors) {
-            console.error("Query failed", res.errors);
-            res.data = {lenses: []};
-        }
-        return res
-    })
-    .then((res) => res.data);
-
-    const jres = await res;
-    console.log("jres", jres)
-}
 
 const NodeDetails = ({node}: NodeDetailsProps) => {
     return (
@@ -338,13 +305,6 @@ export default function EngagementViewContent({setLens, curNode}: EngagementView
         <>
             <ToggleLensTable setLens={setLens}/>
             <ToggleNodeTable curNode={curNode}/>
-            <Button
-                onClick = { 
-                    () => {
-                        getProcessByID(5824) 
-                    } 
-                }
-            > Details </Button>
         </>
     );
 }

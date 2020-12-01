@@ -7,6 +7,7 @@ const get_random = (list) => {
 }
 
 const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
+console.log(mg_alpha)
 
 // module.exports.getDgraphClient = () => {
 //     const clientStub = new dgraph.DgraphClientStub(
@@ -18,14 +19,15 @@ const mg_alpha = get_random(process.env.MG_ALPHAS.split(","));
 
 //     return new dgraph.DgraphClient(clientStub);
 // }
+
 let client = null;
 
 module.exports.getDgraphClient = (init_client=false) => {
     if (init_client || !client) {
         const clientStub = new dgraph.DgraphClientStub(
                  // addr: optional, default: "http://localhost:9080"
-                // mg_alpha,
-                "http://localhost:8080",
+                "http://" + mg_alpha,
+                // "http://master_graph:8080",
                 // legacyApi: optional, default: false. Set to true when connecting to Dgraph v1.0.x
                 false,
         );

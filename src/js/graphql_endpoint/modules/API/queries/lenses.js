@@ -1,5 +1,6 @@
 module.exports.getLenses = async (dg_client, first, offset) => {
     // console.log("first offset", first, offset);
+    console.log("in get lenses")
     const query = `
         query all($a: int, $b: int)
         {
@@ -39,30 +40,29 @@ module.exports.getLenses = async (dg_client, first, offset) => {
 // return lens
 module.exports.getLensByName = async (dg_client, lensName) => {
     const query = `
-    query all($a: string, $b: first, $c: offset)
-        {
-            all(func: eq(lens_name, $a), first: 1)
+        query all($a: string, $b: first, $c: offset)
             {
-                lens_name,
-                score,
-                node_key,
-                uid,
-                dgraph_type: dgraph.type,
-                lens_type,
-                scope @filter(has(node_key)) {
+                all(func: eq(lens_name, $a), first: 1)
+                {
+                    lens_name,
+                    score,
+                    node_key,
                     uid,
                     dgraph_type: dgraph.type,
-                    expand(_all_)
+                    lens_type,
+                    scope @filter(has(node_key)) {
+                        uid,
+                        dgraph_type: dgraph.type,
+                        expand(_all_)
+                    }
                 }
             }
-        }
     `;
 
     const txn = dg_client.newTxn();
     
     try {
         const res = await txn.queryWithVars(query, {'$a': lensName});
-        console.log("res",res)
         return res.data['all'][0];
     } finally {
         await txn.discard();
@@ -72,24 +72,27 @@ module.exports.getLensByName = async (dg_client, lensName) => {
 module.exports.inLensScope = async (dg_client, nodeUid, lensUid) => {
 
     const query = `
-    query all($a: string, $b: string)
-    {
-        all(func: uid($b)) @cascade
+        query all($a: string, $b: string)
         {
-            uid,
-            scope @filter(uid($a)) {
+            all(func: uid($b)) @cascade
+            {
                 uid,
+                scope @filter(uid($a)) {
+                    uid,
+                }
             }
-        }
-    }`;
+        }`
+    ;
 
     const txn = dg_client.newTxn();
     try {
-        const res = await txn.queryWithVars(query, {
-            '$a': nodeUid, '$b': lensUid
-        });
+        const res = await txn.queryWithVars(
+            query, 
+            { '$a': nodeUid, '$b': lensUid }
+        );
 
         return res.data['all'].length !== 0;
+        
     } finally {
         await txn.discard();
     }

@@ -64,7 +64,7 @@ module.exports.getNode = async (dg_client, typeName, predicates) => {
 
 }
 
-module.exports.getNeighborsFromNode = async (dg_client, nodeUid) => {
+module.exports.getNodeWithNeighbors = async (dg_client, nodeUid) => {
     const query = `
         query all($a: string)
         {
@@ -84,6 +84,7 @@ module.exports.getNeighborsFromNode = async (dg_client, nodeUid) => {
     const txn = dg_client.newTxn();
     try {
         const res = await txn.queryWithVars(query, {'$a': nodeUid});
+        console.log("RES.DATA", res.data['all'])
         return res.data['all'][0];
     } finally {
         await txn.discard();

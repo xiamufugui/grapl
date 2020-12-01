@@ -26,7 +26,7 @@ const secretsmanager = new AWS.SecretsManager({
 });
 
 const fetchJwtSecret = async () => {
-    console.log("JWT_SECRET_ID: ", JWT_SECRET_ID);
+    // console.log("JWT_SECRET_ID: ", JWT_SECRET_ID);
     const getSecretRes = await secretsmanager.getSecretValue({
         SecretId: JWT_SECRET_ID,
     }).promise();
@@ -45,7 +45,7 @@ const fetchJwtSecret = async () => {
     }
 })();
 
-module.exports.verifyToken = async (jwtToken) => {
+const verifyToken = async (jwtToken) => {
     if (!JWT_SECRET) {
         JWT_SECRET = await fetchJwtSecret();
     }

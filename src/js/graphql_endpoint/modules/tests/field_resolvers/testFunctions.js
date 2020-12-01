@@ -77,7 +77,6 @@ const fetchGraphQl = async (query) => {
         })
         .then(res => res.json())
         .then(res => {
-            // console.log('retrieveGraph res', res);
             return res
         })
         .then((res) =>  res.data);

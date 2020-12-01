@@ -43,6 +43,12 @@ const unpackPluginNodes = (nodes: BaseNode[]) => {
     }
 }
 
+// Filter lens scope
+// Pass in lensWithScope
+// Iterate over graph, (use map graph)
+// If a node in the schope or anywhere in the graph doesn't have an edge (in_scope) to current lens, remove that node. uid,
+// Map Graph takes a graph and a callback, in the callback, you'll get a node, if this node doesn't have an edge, delete it
+
 export const retrieveGraph = async (lens: string): Promise<(LensScopeResponse & BaseNode)> => {
     const query = expandScope(lens);
 
@@ -57,15 +63,12 @@ export const retrieveGraph = async (lens: string): Promise<(LensScopeResponse & 
         })
         .then(res => res.json())
         .then(res => {
-            console.log('retrieveGraph res', res);
             return res
         })
         .then((res) => res.data)
         .then((res) => res.lens_scope);
 
     const lensWithScope = await res;
-
-    console.log('LensWithScope: ', lensWithScope);
     
     unpackPluginNodes(lensWithScope.scope);
     
@@ -90,7 +93,7 @@ export const expandScope = (lensName: string) => {
                                 dgraph_type,
                                 process_name, 
                                 process_id,
-                                children {
+                                children(filter: in_scope{lens_name: ${lensName}}) {
                                     uid, 
                                     node_key, 
                                     dgraph_type,
@@ -118,17 +121,17 @@ export const expandScope = (lensName: string) => {
                                 node_key, 
                                 dgraph_type,
                                 hostname,
-                                asset_ip{
+                                asset_ip(filter: in_scope{lens_name: ${lensName}}){
                                     ip_address
                                 }, 
-                                asset_processes(process_name: "${lensName}"){
+                                asset_processes(filter: in_scope{lens_name: ${lensName}}){
                                     uid, 
                                     node_key, 
                                     dgraph_type,
                                     process_name, 
                                     process_id,
                                 },
-                                files_on_asset{
+                                files_on_asset(filter: in_scope{lens_name: ${lensName}}){
                                     uid, 
                                     node_key, 
                                     dgraph_type,
