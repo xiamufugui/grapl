@@ -63,6 +63,7 @@ export const retrieveGraph = async (lens: string): Promise<(LensScopeResponse & 
         })
         .then(res => res.json())
         .then(res => {
+            console.log("res in lens_scope", res)
             return res
         })
         .then((res) => res.data)
@@ -93,7 +94,7 @@ export const expandScope = (lensName: string) => {
                                 dgraph_type,
                                 process_name, 
                                 process_id,
-                                children(filter: in_scope{lens_name: ${lensName}}) {
+                                children(filter: in_scope{lens_name: ${lensName}}){
                                     uid, 
                                     node_key, 
                                     dgraph_type,

@@ -49,8 +49,8 @@ const RootQuery = new GraphQLObjectType({
                 type: LensScopeWithErrors,
                 args: {
                     lens_name: {type: new GraphQLNonNull(GraphQLString)},
-                    score: {type: new GraphQLInt()},
-                    lens_type: {type: new GraphQLString()}
+                    score: {type: GraphQLInt},
+                    lens_type: {type: GraphQLString}
                 },
                 resolve: async (parent, args) => {
                     try {
