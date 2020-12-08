@@ -470,6 +470,10 @@ const handleLensScope = async (parent, args) => {
     lens["scope"] = lens["scope"] || [];
     console.log("lens scope", lens)
 
+    const inScopeCache = new Map();
+    for (const node of lens["scope"]) {
+        inScopeCache.set(node.uid + lens["uid"], true);
+    }
     for (const node of lens["scope"]) {
         node.dgraph_type = node.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
 
@@ -482,7 +486,7 @@ const handleLensScope = async (parent, args) => {
         const nodeEdges = await getNeighborsFromNode(dg_client, node["uid"]);
 
         for (const maybeNeighborProp in nodeEdges) {
-            console.log("Retrieving Neigbhors for", nodeEdges);
+            console.log("Retrieving neighbors for", nodeEdges);
             const maybeNeighbor = nodeEdges[maybeNeighborProp];
             // maybeNeighbor.uid = parseInt(maybeNeighbor.uid, 16);
             
@@ -494,11 +498,18 @@ const handleLensScope = async (parent, args) => {
                     if (!neighbor.dgraph_type) {continue}
                     neighbor.dgraph_type = neighbor.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
 
-                    const isInScope = await inLensScope(dg_client, neighbor["uid"], lens["uid"]);
+                    let isInScope = inScopeCache.get(neighbor["uid"] + lens["uid"]);
+                    if (isInScope === undefined) {
+                        isInScope = await inLensScope(dg_client, neighbor["uid"], lens["uid"]);
+                        inScopeCache.set(neighbor["uid"] + lens["uid"], isInScope);
+                    } else {
+                        console.debug("Received a cached entry for inLensScope");
+                    }
+
                     neighbor.uid = parseInt(neighbor.uid, 16);
 
                     if (isInScope) {
-                        console.log("checking to see if neigbhor is in lensScope", isInScope);
+                        console.log("checking to see if neighbor is in lensScope", isInScope);
                         if (Array.isArray(node[maybeNeighborProp])) {
                             node[maybeNeighborProp].push(neighbor);
                         } else {
@@ -511,7 +522,14 @@ const handleLensScope = async (parent, args) => {
                 const neighbor = maybeNeighbor;
                 neighbor.dgraph_type = neighbor.dgraph_type.filter((t) => (t !== 'Base' && t !== 'Entity'))
 
-                const isInScope = await inLensScope(dg_client, neighbor["uid"], lens["uid"]);
+                let isInScope = inScopeCache.get(neighbor["uid"] + lens["uid"]);
+                if (isInScope === undefined) {
+                    isInScope = await inLensScope(dg_client, neighbor["uid"], lens["uid"]);
+                    inScopeCache.set(neighbor["uid"] + lens["uid"], isInScope);
+                } else {
+                    console.debug("Received a cached entry for inLensScope");
+                }
+
                 neighbor.uid = parseInt(neighbor.uid, 16);
                 if (isInScope) {
                     if(!builtins.has(neighbor.dgraph_type[0])) {
