@@ -740,8 +740,8 @@ export interface GraplStackProps extends cdk.StackProps {
     version: string;
     dgraphInstanceType: ec2.InstanceType;
     watchfulEmail?: string;
-    operationalAlarmsEmail?: string;
-    securityAlarmsEmail?: string;
+    operationalAlarmsEmail: string;
+    securityAlarmsEmail: string;
 }
 
 export class GraplCdkStack extends cdk.Stack {
@@ -927,6 +927,7 @@ export class GraplCdkStack extends cdk.Stack {
 
         const engagement_notebook = new EngagementNotebook(this, 'engagements', {
             model_plugins_bucket,
+            schema_db: schema_table,
             ...graplProps,
         });
 
@@ -975,12 +976,15 @@ export class GraplCdkStack extends cdk.Stack {
             );
         }
 
-        if (props.operationalAlarmsEmail) {
-            new OperationalAlarms(this, "operation_alarms", props.operationalAlarmsEmail);
-        }
-        if (props.securityAlarmsEmail) {
-            new SecurityAlarms(this, "security_alarms", props.securityAlarmsEmail);
-        }
+        new OperationalAlarms(this, "operational_alarms", {
+            prefix: this.prefix,
+            email: props.operationalAlarmsEmail
+        });
+
+        new SecurityAlarms(this, "security_alarms", {
+            prefix: this.prefix,
+            email: props.securityAlarmsEmail
+        });
 
         new PipelineDashboard(this, "pipeline_dashboard", {
             namePrefix: this.prefix,
