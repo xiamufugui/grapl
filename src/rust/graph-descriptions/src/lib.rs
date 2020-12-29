@@ -22,6 +22,8 @@ pub mod process;
 pub mod process_inbound_connection;
 pub mod process_outbound_connection;
 
+pub mod sessions;
+
 impl From<Static> for IdStrategy {
     fn from(strategy: Static) -> IdStrategy {
         IdStrategy {

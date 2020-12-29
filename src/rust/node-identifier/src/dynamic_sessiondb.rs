@@ -9,10 +9,10 @@ use grapl_graph_descriptions::graph_description::id_strategy;
 use grapl_graph_descriptions::graph_description::Session as SessionStrategy;
 use grapl_graph_descriptions::graph_description::*;
 use grapl_graph_descriptions::node::NodeT;
+use grapl_graph_descriptions::sessions::UnidSession;
 
 use crate::assetdb::AssetIdentifier;
 use crate::sessiondb::SessionDb;
-use crate::sessions::UnidSession;
 
 #[derive(Debug, Clone)]
 pub struct DynamicMappingDb<D>

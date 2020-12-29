@@ -46,8 +46,8 @@ use grapl_graph_descriptions::network_connection::NetworkConnectionState;
 use grapl_graph_descriptions::node::NodeT;
 use grapl_graph_descriptions::process_inbound_connection::ProcessInboundConnectionState;
 use grapl_graph_descriptions::process_outbound_connection::ProcessOutboundConnectionState;
+use grapl_graph_descriptions::sessions::UnidSession;
 use sessiondb::SessionDb;
-use sessions::UnidSession;
 
 macro_rules! wait_on {
     ($x:expr) => {{
@@ -60,7 +60,6 @@ pub mod assetdb;
 pub mod dynamic_sessiondb;
 
 pub mod sessiondb;
-pub mod sessions;
 
 #[derive(Clone)]
 pub struct NodeIdentifier<D, CacheT>

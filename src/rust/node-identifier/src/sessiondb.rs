@@ -11,7 +11,7 @@ use rusoto_dynamodb::{
 
 use uuid::Uuid;
 
-use crate::sessions::*;
+use grapl_graph_descriptions::sessions::*;
 
 #[derive(Debug, Clone)]
 pub struct SessionDb<D>

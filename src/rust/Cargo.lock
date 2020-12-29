@@ -1314,13 +1314,16 @@ name = "grapl-graph-descriptions"
 version = "0.2.10"
 dependencies = [
  "derive_builder",
+ "failure",
  "log 0.4.11",
  "prost",
  "prost-build",
  "prost-derive",
  "prost-types",
+ "rusoto_dynamodb",
  "serde",
  "serde_derive",
+ "serde_dynamodb",
  "serde_json",
  "thiserror",
  "uuid 0.8.1",
