@@ -4,6 +4,8 @@ use log::warn;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::sessions::UnidSession;
+
 use crate::error::Error;
 use crate::graph_description::IpConnection;
 use crate::node::NodeT;
@@ -103,6 +105,23 @@ impl NodeT for IpConnection {
 
     fn set_node_key(&mut self, node_key: impl Into<String>) {
         self.node_key = node_key.into();
+    }
+
+    fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
+        let (is_creation, timestamp) = match IpConnectionState::try_from(self.state)? {
+            IpConnectionState::Created => (true, self.created_timestamp),
+            _ => (false, self.last_seen_timestamp),
+        };
+
+        let pseudo_key = format!(
+            "{}{}{}ip_network_connection",
+            self.src_ip_address, self.dst_ip_address, self.protocol,
+        );
+        Ok(Some(UnidSession {
+            pseudo_key,
+            timestamp,
+            is_creation,
+        }))
     }
 
     fn merge(&mut self, other: &Self) -> bool {

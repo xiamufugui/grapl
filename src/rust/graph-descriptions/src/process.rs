@@ -4,6 +4,10 @@ use log::warn;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use failure::bail;
+
+use crate::sessions::UnidSession;
+
 use crate::error::Error;
 use crate::graph_description::Process;
 use crate::node::NodeT;
@@ -134,6 +138,29 @@ impl NodeT for Process {
 
     fn set_node_key(&mut self, node_key: impl Into<String>) {
         self.node_key = node_key.into();
+    }
+
+    fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
+        let (is_creation, timestamp) = match (
+            self.created_timestamp != 0,
+            self.last_seen_timestamp != 0,
+            self.terminated_timestamp != 0,
+        ) {
+            (true, _, _) => (true,  self.created_timestamp),
+            (_, _, true) => (false, self.terminated_timestamp),
+            (_, true, _) => (false, self.last_seen_timestamp),
+            _ => bail!("At least one timestamp must be set"),
+        };
+
+        Ok(Some(UnidSession {
+            pseudo_key: format!(
+                            "{}{}",
+                            self.get_asset_id().expect("ProcessNode must have asset_id"),
+                            self.process_id
+                        ),
+                        timestamp,
+                        is_creation,
+        }))
     }
 
     fn merge(&mut self, other: &Self) -> bool {

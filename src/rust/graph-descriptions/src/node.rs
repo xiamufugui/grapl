@@ -1,6 +1,9 @@
 use log::warn;
 use serde_json::Value;
 
+use failure::{bail, Error};
+
+use crate::sessions::UnidSession;
 use crate::graph_description::node::WhichNode;
 use crate::graph_description::{
     Asset, DynamicNode, File, IpAddress, IpConnection, IpPort, NetworkConnection, Node, Process,
@@ -23,6 +26,8 @@ pub trait NodeT {
     }
 
     fn set_node_key(&mut self, node_key: impl Into<String>);
+
+    fn into_unid_session(&self) -> Result<Option<UnidSession>, Error>;
 
     fn merge(&mut self, other: &Self) -> bool;
 
@@ -650,6 +655,42 @@ impl NodeT for Node {
             WhichNode::DynamicNode(ref mut dynamic_node) => {
                 dynamic_node.set_node_key(node_key.into())
             }
+        }
+    }
+
+    fn into_unid_session(&self) -> Result<Option<UnidSession>, Error> {
+        match &self.which_node {
+            Some(WhichNode::ProcessNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::FileNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::ProcessOutboundConnectionNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::ProcessInboundConnectionNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::NetworkConnectionNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::IpConnectionNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::IpAddressNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::AssetNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::IpPortNode(node)) => {
+                node.into_unid_session()
+            }
+            Some(WhichNode::DynamicNode(node)) => {
+                node.into_unid_session()
+            }
+            None => bail!("Failed to determine node type & its UnidSession"),
         }
     }
 

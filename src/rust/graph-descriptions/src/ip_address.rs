@@ -1,6 +1,8 @@
 use log::warn;
 use serde_json::{json, Value};
 
+use crate::sessions::UnidSession;
+
 use crate::graph_description::IpAddress;
 use crate::node::NodeT;
 
@@ -54,6 +56,11 @@ impl NodeT for IpAddress {
 
     fn set_node_key(&mut self, node_key: impl Into<String>) {
         self.node_key = node_key.into();
+    }
+
+    fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
+        // Trivial case, no unid session.
+        Ok(None)
     }
 
     fn merge(&mut self, other: &Self) -> bool {

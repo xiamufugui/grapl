@@ -4,6 +4,8 @@ use log::warn;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::sessions::UnidSession;
+
 use crate::error::Error;
 use crate::graph_description::ProcessOutboundConnection;
 use crate::node::NodeT;
@@ -110,6 +112,25 @@ impl NodeT for ProcessOutboundConnection {
 
     fn set_node_key(&mut self, node_key: impl Into<String>) {
         self.node_key = node_key.into();
+    }
+
+    fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
+        let (is_creation, timestamp) =
+            match ProcessOutboundConnectionState::try_from(self.state)? {
+                ProcessOutboundConnectionState::Connected => (true, self.created_timestamp),
+                _ => (false, self.last_seen_timestamp),
+            };
+
+        Ok(Some(UnidSession {
+            pseudo_key: format!(
+                            "{}{}outbound",
+                            self.get_asset_id()
+                            .expect("ProcessOutboundConnectionNode must have asset_id"),
+                            self.port
+                        ),
+                        timestamp,
+                        is_creation,
+        }))
     }
 
     fn merge(&mut self, other: &Self) -> bool {

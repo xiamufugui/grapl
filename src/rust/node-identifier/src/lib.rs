@@ -41,12 +41,7 @@ use grapl_graph_descriptions::file::FileState;
 use grapl_graph_descriptions::graph_description::host::*;
 use grapl_graph_descriptions::graph_description::node::WhichNode;
 use grapl_graph_descriptions::graph_description::*;
-use grapl_graph_descriptions::ip_connection::IpConnectionState;
-use grapl_graph_descriptions::network_connection::NetworkConnectionState;
 use grapl_graph_descriptions::node::NodeT;
-use grapl_graph_descriptions::process_inbound_connection::ProcessInboundConnectionState;
-use grapl_graph_descriptions::process_outbound_connection::ProcessOutboundConnectionState;
-use grapl_graph_descriptions::sessions::UnidSession;
 use sessiondb::SessionDb;
 
 macro_rules! wait_on {
@@ -102,7 +97,7 @@ where
     }
 
     async fn attribute_node_key(&self, node: Node) -> Result<Node, Error> {
-        let unid = into_unid_session(&node)?;
+        let unid = node.into_unid_session()?;
 
         match node.which_node {
             Some(WhichNode::ProcessNode(mut process_node)) => {
@@ -251,136 +246,6 @@ where
             }
             None => bail!("Unknown Node Variant"),
         }
-    }
-}
-
-fn into_unid_session(node: &Node) -> Result<Option<UnidSession>, Error> {
-    match &node.which_node {
-        Some(WhichNode::ProcessNode(node)) => {
-            let (is_creation, timestamp) = match (
-                node.created_timestamp != 0,
-                node.last_seen_timestamp != 0,
-                node.terminated_timestamp != 0,
-            ) {
-                (true, _, _) => (true, node.created_timestamp),
-                (_, _, true) => (false, node.terminated_timestamp),
-                (_, true, _) => (false, node.last_seen_timestamp),
-                _ => bail!("At least one timestamp must be set"),
-            };
-
-            Ok(Some(UnidSession {
-                pseudo_key: format!(
-                    "{}{}",
-                    node.get_asset_id().expect("ProcessNode must have asset_id"),
-                    node.process_id
-                ),
-                timestamp,
-                is_creation,
-            }))
-        }
-        Some(WhichNode::FileNode(node)) => {
-            let (is_creation, timestamp) = match FileState::try_from(node.state)? {
-                FileState::Created => (true, node.created_timestamp),
-                _ => (false, node.last_seen_timestamp),
-            };
-            // TODO: Hash the path
-            let key = &node.file_path;
-
-            Ok(Some(UnidSession {
-                pseudo_key: format!(
-                    "{}{}",
-                    node.get_asset_id().expect("FileNode must have asset_id"),
-                    key
-                ),
-                timestamp,
-                is_creation,
-            }))
-        }
-        Some(WhichNode::ProcessOutboundConnectionNode(node)) => {
-            let (is_creation, timestamp) =
-                match ProcessOutboundConnectionState::try_from(node.state)? {
-                    ProcessOutboundConnectionState::Connected => (true, node.created_timestamp),
-                    _ => (false, node.last_seen_timestamp),
-                };
-
-            Ok(Some(UnidSession {
-                pseudo_key: format!(
-                    "{}{}outbound",
-                    node.get_asset_id()
-                        .expect("ProcessOutboundConnectionNode must have asset_id"),
-                    node.port
-                ),
-                timestamp,
-                is_creation,
-            }))
-        }
-        Some(WhichNode::ProcessInboundConnectionNode(node)) => {
-            let (is_creation, timestamp) =
-                match ProcessInboundConnectionState::try_from(node.state)? {
-                    ProcessInboundConnectionState::Bound => (true, node.created_timestamp),
-                    _ => (false, node.last_seen_timestamp),
-                };
-
-            Ok(Some(UnidSession {
-                pseudo_key: format!(
-                    "{}{}inbound",
-                    node.get_asset_id().expect("Missing asset id"),
-                    node.port
-                ),
-                timestamp,
-                is_creation,
-            }))
-        }
-
-        Some(WhichNode::NetworkConnectionNode(node)) => {
-            let (is_creation, timestamp) = match NetworkConnectionState::try_from(node.state)? {
-                NetworkConnectionState::Created => (true, node.created_timestamp),
-                _ => (false, node.last_seen_timestamp),
-            };
-
-            let pseudo_key = format!(
-                "{}{}{}{}{}network_connection",
-                node.src_port,
-                node.src_ip_address,
-                node.dst_port,
-                node.dst_ip_address,
-                node.protocol,
-            );
-            Ok(Some(UnidSession {
-                pseudo_key,
-                timestamp,
-                is_creation,
-            }))
-        }
-
-        Some(WhichNode::IpConnectionNode(node)) => {
-            let (is_creation, timestamp) = match IpConnectionState::try_from(node.state)? {
-                IpConnectionState::Created => (true, node.created_timestamp),
-                _ => (false, node.last_seen_timestamp),
-            };
-
-            let pseudo_key = format!(
-                "{}{}{}ip_network_connection",
-                node.src_ip_address, node.dst_ip_address, node.protocol,
-            );
-            Ok(Some(UnidSession {
-                pseudo_key,
-                timestamp,
-                is_creation,
-            }))
-        }
-        // IpAddressNode is not a session
-        Some(WhichNode::IpAddressNode(_node)) => Ok(None),
-
-        // AssetNode is not a session
-        Some(WhichNode::AssetNode(_node)) => Ok(None),
-
-        // IpPortNode is not a session
-        Some(WhichNode::IpPortNode(_node)) => Ok(None),
-
-        // DynamicNode's are identified separatealy from others
-        Some(WhichNode::DynamicNode(_node)) => Ok(None),
-        None => bail!("Failed to handle variant of node. Dropping it."),
     }
 }
 
