@@ -4,6 +4,7 @@ use serde_json::Value;
 use failure::{bail, Error};
 
 use crate::sessions::UnidSession;
+use crate::graph_description::IdStrategy;
 use crate::graph_description::node::WhichNode;
 use crate::graph_description::{
     Asset, DynamicNode, File, IpAddress, IpConnection, IpPort, NetworkConnection, Node, Process,
@@ -18,6 +19,8 @@ pub trait NodeT {
     }
 
     fn set_asset_id(&mut self, asset_id: impl Into<String>);
+
+    fn create_static_node_key(&self) -> Option<String>;
 
     fn get_node_key(&self) -> &str;
 
@@ -588,6 +591,28 @@ impl NodeT for Node {
             WhichNode::DynamicNode(ref mut dynamic_node) => {
                 dynamic_node.set_asset_id(asset_id.into())
             }
+        }
+    }
+
+    fn create_static_node_key(&self) -> Option<String> {
+        match &self.which_node {
+            Some(WhichNode::AssetNode(asset_node)) => asset_node.create_static_node_key(),
+            Some(WhichNode::ProcessNode(process_node)) => process_node.create_static_node_key(),
+            Some(WhichNode::FileNode(file_node)) => file_node.create_static_node_key(),
+            Some(WhichNode::IpAddressNode(ip_address_node)) => ip_address_node.create_static_node_key(),
+            Some(WhichNode::ProcessOutboundConnectionNode(process_outbound_connection_node)) => {
+                process_outbound_connection_node.create_static_node_key()
+            }
+            Some(WhichNode::ProcessInboundConnectionNode(process_inbound_connection_node)) => {
+                process_inbound_connection_node.create_static_node_key()
+            }
+            Some(WhichNode::IpPortNode(ip_port_node)) => ip_port_node.create_static_node_key(),
+            Some(WhichNode::NetworkConnectionNode(network_connection_node)) => {
+                network_connection_node.create_static_node_key()
+            }
+            Some(WhichNode::IpConnectionNode(ip_connection_node)) => ip_connection_node.create_static_node_key(),
+            Some(WhichNode::DynamicNode(dynamic_node)) => dynamic_node.create_static_node_key(),
+            None => panic!("Failed to determine variant of node"),
         }
     }
 

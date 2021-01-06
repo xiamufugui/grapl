@@ -50,6 +50,10 @@ impl NodeT for IpAddress {
         panic!("Can not set asset_id on IpAddress");
     }
 
+    fn create_static_node_key(&self) -> Option<String> {
+        Some(self.ip_address.clone())
+    }
+
     fn get_node_key(&self) -> &str {
         &self.node_key
     }

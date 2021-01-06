@@ -1,6 +1,8 @@
 use log::warn;
 use serde_json::{json, Value};
 
+use sha2::Digest;
+
 use crate::sessions::UnidSession;
 
 use crate::graph_description::IpPort;
@@ -36,6 +38,17 @@ impl NodeT for IpPort {
 
     fn set_asset_id(&mut self, _asset_id: impl Into<String>) {
         panic!("Can not set asset_id on IpPort");
+    }
+
+    fn create_static_node_key(&self) -> Option<String> {
+        let port = &self.port;
+        let protocol = &self.protocol;
+
+        let mut node_key_hasher = sha2::Sha256::default();
+        node_key_hasher.input(port.to_string().as_bytes());
+        node_key_hasher.input(protocol.as_bytes());
+
+        Some(hex::encode(node_key_hasher.result()))
     }
 
     fn get_node_key(&self) -> &str {

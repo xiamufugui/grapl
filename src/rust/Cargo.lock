@@ -1325,6 +1325,7 @@ version = "0.2.10"
 dependencies = [
  "derive_builder",
  "failure",
+ "hex",
  "log 0.4.11",
  "prost",
  "prost-build",
@@ -1335,6 +1336,7 @@ dependencies = [
  "serde_derive",
  "serde_dynamodb",
  "serde_json",
+ "sha2 0.7.1",
  "thiserror",
  "uuid 0.8.1",
 ]

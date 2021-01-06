@@ -77,6 +77,10 @@ impl NodeT for DynamicNode {
         self.asset_id = Some(asset_id.into());
     }
 
+    fn create_static_node_key(&self) -> Option<String> {
+        None
+    }
+
     fn get_node_key(&self) -> &str {
         self.node_key.as_str()
     }

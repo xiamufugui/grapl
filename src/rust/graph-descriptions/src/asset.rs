@@ -69,6 +69,10 @@ impl NodeT for Asset {
         self.asset_id = Some(asset_id.into());
     }
 
+    fn create_static_node_key(&self) -> Option<String> {
+        self.asset_id.clone()
+    }
+
     fn get_node_key(&self) -> &str {
         &self.node_key
     }

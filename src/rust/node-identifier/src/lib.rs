@@ -97,11 +97,48 @@ where
         }
     }
 
+    async fn dynamic_node_lookup<T: NodeT>(&self, node: &mut T, table: String, name: &str) -> Result<(), Error> {
+        let unid = node.into_unid_session()?;
+        info!("Attributing {}", name);
+        let unid = match unid {
+            Some(unid) => unid,
+            None => bail!("Could not identify {}", name),
+        };
+        let session_db = SessionDb::new(
+            self.node_id_db.clone(),
+            table,
+        );
+        let node_key = session_db
+            .handle_unid_session(unid, self.should_default)
+            .await?;
+
+        node.set_node_key(node_key);
+        Ok(())
+    }
+
     async fn attribute_node_key(&self, node: Node) -> Result<Node, Error> {
         let unid = node.into_unid_session()?;
 
-        match node.which_node {
-            Some(WhichNode::ProcessNode(mut process_node)) => {
+        let static_node_key = node.create_static_node_key();
+
+        match (node.which_node, static_node_key) {
+            (Some(WhichNode::IpAddressNode(mut inner_node)), Some(static_node_key)) => {
+                inner_node.set_node_key(static_node_key);
+                Ok(inner_node.into())
+            }
+            (Some(WhichNode::IpPortNode(mut inner_node)), Some(static_node_key)) => {
+                inner_node.set_node_key(static_node_key);
+                Ok(inner_node.into())
+            }
+            (Some(WhichNode::AssetNode(mut inner_node)), Some(static_node_key)) => {
+                inner_node.set_node_key(static_node_key);
+                Ok(inner_node.into())
+            }
+            (Some(WhichNode::ProcessNode(mut process_node)), None) => {
+                self.dynamic_node_lookup(&mut process_node, grapl_config::process_history_table_name(), "ProcessNode").await;
+                // lol this just assumes success :(
+                Ok(process_node.into())
+                /*
                 info!("Attributing ProcessNode: {}", process_node.process_id);
                 let unid = match unid {
                     Some(unid) => unid,
@@ -118,8 +155,9 @@ where
                 info!("Mapped Process {:?} to {}", process_node, &node_key,);
                 process_node.set_node_key(node_key);
                 Ok(process_node.into())
+                */
             }
-            Some(WhichNode::FileNode(mut file_node)) => {
+            (Some(WhichNode::FileNode(mut file_node)), None) => {
                 info!("Attributing FileNode");
                 let unid = match unid {
                     Some(unid) => unid,
@@ -136,7 +174,7 @@ where
                 file_node.set_node_key(node_key);
                 Ok(file_node.into())
             }
-            Some(WhichNode::ProcessInboundConnectionNode(mut inbound_node)) => {
+            (Some(WhichNode::ProcessInboundConnectionNode(mut inbound_node)), None) => {
                 info!("Attributing ProcessInboundConnectionNode");
                 let unid = match unid {
                     Some(unid) => unid,
@@ -153,7 +191,7 @@ where
                 inbound_node.set_node_key(node_key);
                 Ok(inbound_node.into())
             }
-            Some(WhichNode::ProcessOutboundConnectionNode(mut outbound_node)) => {
+            (Some(WhichNode::ProcessOutboundConnectionNode(mut outbound_node)), None) => {
                 info!("Attributing ProcessOutboundConnectionNode");
                 let unid = match unid {
                     Some(unid) => unid,
@@ -170,40 +208,7 @@ where
                 outbound_node.set_node_key(node_key);
                 Ok(outbound_node.into())
             }
-            Some(WhichNode::AssetNode(mut asset_node)) => {
-                info!("Attributing AssetNode");
-                let asset_id = match asset_node.clone_asset_id() {
-                    Some(asset_id) => asset_id,
-                    None => bail!("AssetNode must have asset_id"),
-                };
-
-                // AssetNodes have a node_key equal to their asset_id
-                asset_node.set_node_key(asset_id);
-                Ok(asset_node.into())
-            }
-            // IpAddress nodes are identified at construction
-            Some(WhichNode::IpAddressNode(mut ip_node)) => {
-                ip_node.set_node_key(ip_node.ip_address.clone());
-                info!("Attributing IpAddressNode");
-                Ok(ip_node.into())
-            }
-            // The identity of an IpPortNode is the hash of its ip, port, and protocol
-            Some(WhichNode::IpPortNode(mut ip_port)) => {
-                info!("Attributing IpPortNode");
-                let port = &ip_port.port;
-                let protocol = &ip_port.protocol;
-
-                let mut node_key_hasher = sha2::Sha256::default();
-                node_key_hasher.input(port.to_string().as_bytes());
-                node_key_hasher.input(protocol.as_bytes());
-
-                let node_key = hex::encode(node_key_hasher.result());
-
-                ip_port.set_node_key(node_key);
-
-                Ok(ip_port.into())
-            }
-            Some(WhichNode::NetworkConnectionNode(mut network_connection_node)) => {
+            (Some(WhichNode::NetworkConnectionNode(mut network_connection_node)), None) => {
                 info!("Attributing NetworkConnectionNode");
                 let unid = match unid {
                     Some(unid) => unid,
@@ -220,7 +225,7 @@ where
                 network_connection_node.set_node_key(node_key);
                 Ok(network_connection_node.into())
             }
-            Some(WhichNode::IpConnectionNode(mut ip_connection_node)) => {
+            (Some(WhichNode::IpConnectionNode(mut ip_connection_node)), None) => {
                 info!("Attributing IpConnectionNode");
                 let unid = match unid {
                     Some(unid) => unid,
@@ -237,7 +242,7 @@ where
                 ip_connection_node.set_node_key(node_key);
                 Ok(ip_connection_node.into())
             }
-            Some(WhichNode::DynamicNode(ref dynamic_node)) => {
+            (Some(WhichNode::DynamicNode(ref dynamic_node)), None) => {
                 info!("Attributing DynamicNode");
                 let new_node = self
                     .dynamic_identifier
@@ -245,7 +250,8 @@ where
                     .await?;
                 Ok(new_node.into())
             }
-            None => bail!("Unknown Node Variant"),
+            (_, Some(static_node_key)) => bail!("Static node key defined for unexpected node!"),
+            (_, None) => bail!("Static node key missing for node!"),
         }
     }
 }
