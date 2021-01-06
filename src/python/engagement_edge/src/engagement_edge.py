@@ -26,7 +26,7 @@ import boto3
 import jwt
 from chalice import Chalice, CORSConfig, Response
 from src.lib.env_vars import BUCKET_PREFIX, GRAPL_LOG_LEVEL, IS_LOCAL
-from src.lib.sagemaker import SagemakerClient
+from src.lib.sagemaker import create_sagemaker_client
 
 if TYPE_CHECKING:
     from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource, Table
@@ -216,9 +216,7 @@ def login(username: str, password: str) -> Optional[str]:
         return None
 
     # Use JWT to generate token
-    return jwt.encode(
-        {"username": username}, JWT_SECRET.get(), algorithm="HS256"
-    ).decode("utf8")
+    return jwt.encode({"username": username}, JWT_SECRET.get(), algorithm="HS256")
 
 
 def check_jwt(headers: Dict[str, Any]) -> bool:
@@ -299,7 +297,7 @@ def no_auth(path: str) -> Callable[[RouteFn], RouteFn]:
             try:
                 return route_fn()
             except Exception as e:
-                LOGGER.error("path %s", e)
+                LOGGER.error(f"path {path} had an error: {e}")
                 return respond("Unexpected Error")
 
         return cast(RouteFn, inner_route)
@@ -335,7 +333,7 @@ def check_login() -> Response:
 def get_notebook() -> Response:
     # cross-reference with `engagement.ts` notebookInstanceName
     notebook_name = f"{BUCKET_PREFIX}-Notebook"
-    client = SagemakerClient.create()
+    client = create_sagemaker_client(is_local=IS_LOCAL)
     url = client.get_presigned_url(notebook_name)
     return respond(err=None, res={"notebook_url": url})
 

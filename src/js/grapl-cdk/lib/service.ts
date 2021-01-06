@@ -22,13 +22,13 @@ class Queues {
 
         this.retry_queue = new sqs.Queue(scope, 'RetryQueue', {
             queueName: queue_name + '-retry-queue',
-            deadLetterQueue: { queue: dead_letter_queue, maxReceiveCount: 10 },
+            deadLetterQueue: { queue: dead_letter_queue, maxReceiveCount: 3 },
             visibilityTimeout: cdk.Duration.seconds(360),
         });
 
         this.queue = new sqs.Queue(scope, 'Queue', {
             queueName: queue_name + '-queue',
-            deadLetterQueue: { queue: this.retry_queue, maxReceiveCount: 5 },
+            deadLetterQueue: { queue: this.retry_queue, maxReceiveCount: 3 },
             visibilityTimeout: cdk.Duration.seconds(180),
         });
     }
@@ -127,8 +127,8 @@ export class Service {
                 IS_RETRY: 'False',
                 ...environment,
             },
-            timeout: cdk.Duration.seconds(180),
-            memorySize: 256,
+            timeout: cdk.Duration.seconds(45),
+            memorySize: 128,
             description: props.version,
             role,
         });
@@ -161,8 +161,8 @@ export class Service {
                 IS_RETRY: 'True',
                 ...environment,
             },
-            timeout: cdk.Duration.seconds(360),
-            memorySize: 512,
+            timeout: cdk.Duration.seconds(90),
+            memorySize: 256,
             description: props.version,
             role,
         });
