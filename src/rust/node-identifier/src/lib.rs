@@ -26,11 +26,11 @@ use rusoto_core::{HttpClient, Region};
 use rusoto_dynamodb::{DynamoDb, DynamoDbClient};
 use rusoto_s3::S3Client;
 use rusoto_sqs::{SendMessageRequest, Sqs, SqsClient};
-use sha2::Digest;
 
 use assetdb::{AssetIdDb, AssetIdentifier};
 use dynamic_sessiondb::{DynamicMappingDb, DynamicNodeIdentifier};
 use grapl_graph_descriptions::graph_description::node::WhichNode;
+use grapl_graph_descriptions::graph_description::node::NodeT;
 use grapl_graph_descriptions::graph_description::*;
 
 use grapl_observe::metric_reporter::MetricReporter;
