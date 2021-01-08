@@ -29,9 +29,10 @@ use rusoto_sqs::{SendMessageRequest, Sqs, SqsClient};
 
 use assetdb::{AssetIdDb, AssetIdentifier};
 use dynamic_sessiondb::{DynamicMappingDb, DynamicNodeIdentifier};
+use grapl_graph_descriptions::graph_description::host::*;
 use grapl_graph_descriptions::graph_description::node::WhichNode;
-use grapl_graph_descriptions::graph_description::node::NodeT;
 use grapl_graph_descriptions::graph_description::*;
+use grapl_graph_descriptions::node::NodeT;
 
 use grapl_observe::metric_reporter::MetricReporter;
 use sessiondb::SessionDb;
@@ -117,8 +118,6 @@ where
     }
 
     async fn attribute_node_key(&self, node: Node) -> Result<Node, Error> {
-        let unid = node.into_unid_session()?;
-
         let static_node_key = node.create_static_node_key();
 
         match (node.which_node, static_node_key) {
@@ -135,111 +134,27 @@ where
                 Ok(inner_node.into())
             }
             (Some(WhichNode::ProcessNode(mut process_node)), None) => {
-                self.dynamic_node_lookup(&mut process_node, grapl_config::process_history_table_name(), "ProcessNode").await;
-                // lol this just assumes success :(
+                self.dynamic_node_lookup(&mut process_node, grapl_config::process_history_table_name(), "ProcessNode").await?;
                 Ok(process_node.into())
-                /*
-                info!("Attributing ProcessNode: {}", process_node.process_id);
-                let unid = match unid {
-                    Some(unid) => unid,
-                    None => bail!("Could not identify ProcessNode"),
-                };
-                let session_db = SessionDb::new(
-                    self.node_id_db.clone(),
-                    grapl_config::process_history_table_name(),
-                );
-                let node_key = session_db
-                    .handle_unid_session(unid, self.should_default)
-                    .await?;
-
-                info!("Mapped Process {:?} to {}", process_node, &node_key,);
-                process_node.set_node_key(node_key);
-                Ok(process_node.into())
-                */
             }
             (Some(WhichNode::FileNode(mut file_node)), None) => {
-                info!("Attributing FileNode");
-                let unid = match unid {
-                    Some(unid) => unid,
-                    None => bail!("Could not identify FileNode"),
-                };
-                let session_db = SessionDb::new(
-                    self.node_id_db.clone(),
-                    grapl_config::file_history_table_name(),
-                );
-                let node_key = session_db
-                    .handle_unid_session(unid, self.should_default)
-                    .await?;
-
-                file_node.set_node_key(node_key);
+                self.dynamic_node_lookup(&mut file_node, grapl_config::file_history_table_name(), "FileNode").await?;
                 Ok(file_node.into())
             }
             (Some(WhichNode::ProcessInboundConnectionNode(mut inbound_node)), None) => {
-                info!("Attributing ProcessInboundConnectionNode");
-                let unid = match unid {
-                    Some(unid) => unid,
-                    None => bail!("Could not identify ProcessInboundConnectionNode"),
-                };
-                let session_db = SessionDb::new(
-                    self.node_id_db.clone(),
-                    grapl_config::inbound_connection_history_table_name(),
-                );
-                let node_key = session_db
-                    .handle_unid_session(unid, self.should_default)
-                    .await?;
-
-                inbound_node.set_node_key(node_key);
+                self.dynamic_node_lookup(&mut inbound_node, grapl_config::inbound_connection_history_table_name(), "ProcessInboundConnectionNode").await?;
                 Ok(inbound_node.into())
             }
             (Some(WhichNode::ProcessOutboundConnectionNode(mut outbound_node)), None) => {
-                info!("Attributing ProcessOutboundConnectionNode");
-                let unid = match unid {
-                    Some(unid) => unid,
-                    None => bail!("Could not identify ProcessOutboundConnectionNode"),
-                };
-                let session_db = SessionDb::new(
-                    self.node_id_db.clone(),
-                    grapl_config::outbound_connection_history_table_name(),
-                );
-                let node_key = session_db
-                    .handle_unid_session(unid, self.should_default)
-                    .await?;
-
-                outbound_node.set_node_key(node_key);
+                self.dynamic_node_lookup(&mut outbound_node, grapl_config::outbound_connection_history_table_name(), "ProcessOutboundConnectionNode").await?;
                 Ok(outbound_node.into())
             }
             (Some(WhichNode::NetworkConnectionNode(mut network_connection_node)), None) => {
-                info!("Attributing NetworkConnectionNode");
-                let unid = match unid {
-                    Some(unid) => unid,
-                    None => bail!("Could not identify NetworkConnectionNode"),
-                };
-                let session_db = SessionDb::new(
-                    self.node_id_db.clone(),
-                    grapl_config::network_connection_history_table_name(),
-                );
-                let node_key = session_db
-                    .handle_unid_session(unid, self.should_default)
-                    .await?;
-
-                network_connection_node.set_node_key(node_key);
+                self.dynamic_node_lookup(&mut network_connection_node, grapl_config::network_connection_history_table_name(), "NetworkConnectionNode").await?;
                 Ok(network_connection_node.into())
             }
             (Some(WhichNode::IpConnectionNode(mut ip_connection_node)), None) => {
-                info!("Attributing IpConnectionNode");
-                let unid = match unid {
-                    Some(unid) => unid,
-                    None => bail!("Could not identify IpConnectionNode"),
-                };
-                let session_db = SessionDb::new(
-                    self.node_id_db.clone(),
-                    grapl_config::ip_connection_history_table_name(),
-                );
-                let node_key = session_db
-                    .handle_unid_session(unid, self.should_default)
-                    .await?;
-
-                ip_connection_node.set_node_key(node_key);
+                self.dynamic_node_lookup(&mut ip_connection_node, grapl_config::ip_connection_history_table_name(), "IpConnectionNode").await?;
                 Ok(ip_connection_node.into())
             }
             (Some(WhichNode::DynamicNode(ref dynamic_node)), None) => {
