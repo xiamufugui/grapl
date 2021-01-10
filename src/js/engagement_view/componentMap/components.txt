@@ -142,7 +142,6 @@ src
 |____setupTests.ts
 |____build.sh
 |____Dockerfile
-|____package-lock.json
 |____package.json
 |____README.md
 |____tsconfig.json
