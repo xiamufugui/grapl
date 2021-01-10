@@ -4,8 +4,8 @@ RUN adduser --disabled-password --gecos '' --home /home/grapl --shell /bin/bash 
 WORKDIR /home/grapl
 RUN mkdir -p lambda
 COPY --chown=grapl package.json lambda/package.json
-COPY --chown=grapl package-lock.json lambda/package-lock.json
-RUN cd lambda && npm i
+COPY --chown=grapl yarn.lock lambda/yarn.lock
+RUN cd lambda && yarn install
 
 FROM node:12.18-buster-slim AS grapl-graphql-endpoint-build
 RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends zip
@@ -28,7 +28,7 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-reco
 COPY --from=grapl-graphql-endpoint-build /home/grapl/lambda.zip /
 RUN unzip -q lambda.zip
 COPY --from=grapl-graphql-endpoint-deps /home/grapl/lambda/package.json /package.json
-COPY --from=grapl-graphql-endpoint-deps /home/grapl/lambda/package-lock.json /package-lock.json
+COPY --from=grapl-graphql-endpoint-deps /home/grapl/lambda/yarn.lock /yarn.lock
 
 # no-op the base image cmd, so it doesn't launch a Node repl
 CMD :

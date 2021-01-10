@@ -490,7 +490,7 @@ image=grapl-cdk-build:
   tags:
     - latest
   annotations:
-    description: "Run npm build over the typescript cdk"
+    description: "Run yarn build over the typescript cdk"
 
 image=grapl-cdk-test:
   image: grapl/grapl-cdk-test
@@ -500,7 +500,7 @@ image=grapl-cdk-test:
   tags:
     - latest
   annotations:
-    description: "Run npm test over the typescript cdk"
+    description: "Run yarn test over the typescript cdk"
   depends:
     - grapl-cdk-build
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-npm run build &&
+yarn run build &&
 cdk destroy -f --require-approval=never "*"
 
 date

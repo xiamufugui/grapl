@@ -16,14 +16,14 @@ EDGE_UX_ARTIFACT_DIR="${THIS_DIR}/edge_ux_post_replace"
 cd "$THIS_DIR"
 
 mkdir -p "${EDGE_UX_ARTIFACT_DIR}"
-npm run build
+yarn run build
 cdk deploy \
     --require-approval=never \
     $PROFILE_FLAG \
     --outputs-file=./cdk-output.json \
     Grapl
 rm -rf "${EDGE_UX_ARTIFACT_DIR}"
-npm run create_edge_ux_package
+yarn run create_edge_ux_package
 cdk deploy \
     --require-approval=never \
     $PROFILE_FLAG \

@@ -13,7 +13,7 @@ Install the following dependencies:
 
 1. Node
 2. Typescript
-3. AWS CDK -- `npm i -g aws-cdk@1.71.0`
+3. AWS CDK -- `yarn install -g aws-cdk@1.71.0`
 4. AWS CLI -- `pip install awscli`
 
 ### AWS Credentials
@@ -117,8 +117,8 @@ branch. This should help future maintenance of the deployment.
 To deploy Grapl with the CDK, execute the following. Note that this
 process takes a while (like roughly 1hr), especially the last step.
 
-1. `npm i`
-2. `npm run build`
+1. `yarn install`
+2. `yarn run build`
 3. `env CDK_NEW_BOOTSTRAP=1 cdk bootstrap --cloudformation-execution-policies arn:aws:iam::aws:policy/AdministratorAccess`
 4. `./deploy_all.sh`
 

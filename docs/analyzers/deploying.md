@@ -33,7 +33,7 @@ linting, and automate the deployment of our analyzers.
 As an example, [insanitybit/grapl-analyzers](https://github.com/insanitybit/grapl-analyzers) is set up to use this webhook.
 
 #### Deploy
-To get started you'll need to install [npm](https://www.npmjs.com/), [typescript](https://www.typescriptlang.org/index.html#download-links), and the [aws-cdk](https://github.com/awslabs/aws-cdk#getting-started).
+To get started you'll need to install [yarn](https://yarnpkg.com/, [typescript](https://www.typescriptlang.org/index.html#download-links), and the [aws-cdk](https://github.com/awslabs/aws-cdk#getting-started).
 
 Clone the repo: 
 `git clone git@github.com:insanitybit/grapl-analyzer-deployer.git`
@@ -57,7 +57,7 @@ GITHUB_ACCESS_TOKEN="58b37668a1d3f9f1fa82f1e99604d58ecbf1333b"
 BUCKET_PREFIX="exampleco"
 ```
 
-(You may need to build dependencies with npm i)
+(You may need to build dependencies with yarn add)
 Run `./deploy.sh`
 
 ### Setting up the Webhook
