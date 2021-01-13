@@ -8,7 +8,7 @@ use crate::sessions::UnidSession;
 
 use crate::error::Error;
 use crate::graph_description::File;
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 #[derive(Debug, Clone)]
 pub enum FileState {
@@ -197,7 +197,7 @@ impl NodeT for File {
         self.asset_id.as_ref().map(String::as_str)
     }
 
-    fn set_asset_id(&mut self, asset_id: impl Into<String>) {
+    fn set_asset_id(&mut self, asset_id: String) {
         self.asset_id = Some(asset_id.into());
     }
 
@@ -209,7 +209,7 @@ impl NodeT for File {
         self.node_key.as_str()
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
+    fn set_node_key(&mut self, node_key: String) {
         self.node_key = node_key.into()
     }
 
@@ -231,7 +231,9 @@ impl NodeT for File {
                         is_creation,
         }))
     }
+}
 
+impl MergeableNodeT for File {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!("Attempted to merge two file nodes with different keys. Dropping merge.");

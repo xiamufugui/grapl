@@ -6,7 +6,7 @@ use sha2::Digest;
 use crate::sessions::UnidSession;
 
 use crate::graph_description::IpPort;
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 impl IpPort {
     pub fn new(ip_address: impl Into<String>, port: u16, protocol: impl Into<String>) -> Self {
@@ -36,7 +36,7 @@ impl NodeT for IpPort {
         None
     }
 
-    fn set_asset_id(&mut self, _asset_id: impl Into<String>) {
+    fn set_asset_id(&mut self, _asset_id: String) {
         panic!("Can not set asset_id on IpPort");
     }
 
@@ -55,7 +55,7 @@ impl NodeT for IpPort {
         &self.node_key
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
+    fn set_node_key(&mut self, node_key: String) {
         self.node_key = node_key.into();
     }
 
@@ -63,7 +63,9 @@ impl NodeT for IpPort {
         // Trivial case, no unid session.
         Ok(None)
     }
+}
 
+impl MergeableNodeT for IpPort {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!("Attempted to merge two IpPort Nodes with differing node_keys");

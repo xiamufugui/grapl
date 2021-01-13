@@ -32,7 +32,7 @@ use dynamic_sessiondb::{DynamicMappingDb, DynamicNodeIdentifier};
 use grapl_graph_descriptions::graph_description::host::*;
 use grapl_graph_descriptions::graph_description::node::WhichNode;
 use grapl_graph_descriptions::graph_description::*;
-use grapl_graph_descriptions::node::NodeT;
+use grapl_graph_descriptions::node::{ NodeT, MergeableNodeT };
 
 use grapl_observe::metric_reporter::MetricReporter;
 use sessiondb::SessionDb;
@@ -235,7 +235,7 @@ fn remap_nodes(graph: &mut Graph, unid_id_map: &HashMap<String, String>) {
         if let Some(_n) = node.as_dynamic_node() {
             let old_node = nodes.insert(node.clone_node_key(), node.clone());
             if let Some(ref old_node) = old_node {
-                NodeT::merge(
+                MergeableNodeT::merge(
                     nodes
                         .get_mut(node.get_node_key())
                         .expect("node key not in map"),
@@ -249,7 +249,7 @@ fn remap_nodes(graph: &mut Graph, unid_id_map: &HashMap<String, String>) {
             // same node_key. Therefor we must merge any nodes when there is a collision.
             let old_node = nodes.insert(new_key.to_owned(), node.clone());
             if let Some(ref old_node) = old_node {
-                NodeT::merge(
+                MergeableNodeT::merge(
                     nodes.get_mut(new_key).expect("New key not in map"),
                     old_node,
                 );
@@ -325,7 +325,7 @@ async fn attribute_asset_ids(
     unid_graph: Graph,
 ) -> Result<Graph, (Error, Graph)> {
     info!("Attributing asset ids");
-    let mut dead_nodes = HashSet::new();
+    let mut dead_node_keys = HashSet::new();
     let mut output_graph = Graph::new(unid_graph.timestamp);
     output_graph.edges = unid_graph.edges;
 
@@ -366,7 +366,7 @@ async fn attribute_asset_ids(
             Err(e) => {
                 warn!("Failed to attribute to asset id: {:?} {}", node, e);
                 err = Some(e);
-                dead_nodes.insert(node.clone_node_key());
+                dead_node_keys.insert(node.clone_node_key());
                 continue;
             }
         };
@@ -379,7 +379,7 @@ async fn attribute_asset_ids(
     // There shouldn't be any dead nodes in our output_graph anyways
     remove_dead_edges(&mut output_graph);
 
-    if dead_nodes.is_empty() {
+    if dead_node_keys.is_empty() {
         info!("Attributed all asset ids");
         Ok(output_graph)
     } else {

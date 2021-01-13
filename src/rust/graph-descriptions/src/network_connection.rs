@@ -8,7 +8,7 @@ use crate::sessions::UnidSession;
 
 use crate::error::Error;
 use crate::graph_description::NetworkConnection;
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 pub enum NetworkConnectionState {
     Created,
@@ -100,7 +100,7 @@ impl NodeT for NetworkConnection {
         None
     }
 
-    fn set_asset_id(&mut self, _asset_id: impl Into<String>) {
+    fn set_asset_id(&mut self, _asset_id: String) {
         panic!("Can not set asset_id on NetworkConnection");
     }
 
@@ -112,8 +112,8 @@ impl NodeT for NetworkConnection {
         &self.node_key
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
-        self.node_key = node_key.into();
+    fn set_node_key(&mut self, node_key: String) {
+        self.node_key = node_key;
     }
 
     fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
@@ -136,7 +136,9 @@ impl NodeT for NetworkConnection {
             is_creation,
         }))
     }
+}
 
+impl MergeableNodeT for NetworkConnection {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!("Attempted to merge two NetworkConnection Nodes with differing node_keys");

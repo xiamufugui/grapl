@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::graph_description::{Edge, EdgeList, GeneratedSubgraphs, Graph, Node};
-use crate::node::NodeT;
+use crate::node::{ MergeableNodeT };
 
 impl Graph {
     pub fn new(timestamp: u64) -> Self {
@@ -33,8 +33,8 @@ impl Graph {
     where
         N: Into<Node>,
     {
-        let node = node.into();
-        let key = node.clone_node_key();
+        let mut node = node.into();
+        let key = node.clone().into_inner_nodet().clone_node_key();
 
         self.nodes.insert(key.to_string(), node);
         self.edges

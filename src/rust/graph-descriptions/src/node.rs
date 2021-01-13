@@ -18,7 +18,7 @@ pub trait NodeT {
         self.get_asset_id().map(String::from)
     }
 
-    fn set_asset_id(&mut self, asset_id: impl Into<String>);
+    fn set_asset_id(&mut self, asset_id: String);
 
     fn create_static_node_key(&self) -> Option<String>;
 
@@ -28,10 +28,12 @@ pub trait NodeT {
         self.get_node_key().to_string()
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>);
+    fn set_node_key(&mut self, node_key: String);
 
     fn into_unid_session(&self) -> Result<Option<UnidSession>, Error>;
+}
 
+pub trait MergeableNodeT {
     fn merge(&mut self, other: &Self) -> bool;
 
     fn merge_into(&mut self, other: Self) -> bool;
@@ -122,335 +124,111 @@ impl From<DynamicNode> for Node {
 }
 
 impl Node {
-    pub fn as_asset(&self) -> Option<&Asset> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::AssetNode(ref asset) = which_node {
-            Some(asset)
-        } else {
-            None
+    pub fn into_inner_nodet(self) -> Box<dyn NodeT> {
+        match self.which_node {
+            Some(WhichNode::IpAddressNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::IpPortNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::AssetNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::FileNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessInboundConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessOutboundConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::NetworkConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::IpConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::DynamicNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            None => panic!("No NodeT implementation listed for given node type!")
         }
     }
 
-    pub fn into_asset(self) -> Option<Asset> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::AssetNode(asset) = which_node {
-            Some(asset)
-        } else {
-            None
+    pub fn as_inner_nodet<'a>(& 'a self) -> Box<& 'a dyn NodeT> {
+        match &self.which_node {
+            Some(WhichNode::IpAddressNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::IpPortNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::AssetNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::FileNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessInboundConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessOutboundConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::NetworkConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::IpConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::DynamicNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            None => panic!("No NodeT implementation listed for given node type!")
         }
     }
 
-    pub fn as_mut_asset(&mut self) -> Option<&mut Asset> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::AssetNode(ref mut asset) = which_node {
-            Some(asset)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_process(&self) -> Option<&Process> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessNode(ref process) = which_node {
-            Some(process)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_process(self) -> Option<Process> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessNode(process) = which_node {
-            Some(process)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_process(&mut self) -> Option<&mut Process> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessNode(ref mut process) = which_node {
-            Some(process)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_file(&self) -> Option<&File> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::FileNode(ref file) = which_node {
-            Some(file)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_file(self) -> Option<File> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::FileNode(file) = which_node {
-            Some(file)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_file(&mut self) -> Option<&mut File> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::FileNode(ref mut file) = which_node {
-            Some(file)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_ip_address(&self) -> Option<&IpAddress> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpAddressNode(ref ip_address) = which_node {
-            Some(ip_address)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_ip_address(self) -> Option<IpAddress> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpAddressNode(ip_address) = which_node {
-            Some(ip_address)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_ip_address(&mut self) -> Option<&mut IpAddress> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpAddressNode(ref mut ip_address) = which_node {
-            Some(ip_address)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_process_outbound_connection(&self) -> Option<&ProcessOutboundConnection> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessOutboundConnectionNode(ref process_outbound_connection) =
-            which_node
-        {
-            Some(process_outbound_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_process_outbound_connection(self) -> Option<ProcessOutboundConnection> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessOutboundConnectionNode(process_outbound_connection) = which_node {
-            Some(process_outbound_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_process_outbound_connection(&mut self) -> Option<&mut ProcessOutboundConnection> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessOutboundConnectionNode(ref mut process_outbound_connection) =
-            which_node
-        {
-            Some(process_outbound_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_process_inbound_connection(&self) -> Option<&ProcessInboundConnection> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessInboundConnectionNode(ref process_inbound_connection) = which_node
-        {
-            Some(process_inbound_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_process_inbound_connection(self) -> Option<ProcessInboundConnection> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessInboundConnectionNode(process_inbound_connection) = which_node {
-            Some(process_inbound_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_process_inbound_connection(&mut self) -> Option<&mut ProcessInboundConnection> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::ProcessInboundConnectionNode(ref mut process_inbound_connection) =
-            which_node
-        {
-            Some(process_inbound_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_ip_port(&self) -> Option<&IpPort> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpPortNode(ref ip_port) = which_node {
-            Some(ip_port)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_network_connection(&self) -> Option<&NetworkConnection> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::NetworkConnectionNode(ref network_connection) = which_node {
-            Some(network_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_network_connection(self) -> Option<NetworkConnection> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::NetworkConnectionNode(network_connection) = which_node {
-            Some(network_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_network_connection(&mut self) -> Option<&mut NetworkConnection> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::NetworkConnectionNode(ref mut network_connection) = which_node {
-            Some(network_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_ip_connection(&self) -> Option<&IpConnection> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpConnectionNode(ref ip_connection) = which_node {
-            Some(ip_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn into_ip_connection(self) -> Option<IpConnection> {
-        let which_node = match self.which_node {
-            Some(which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpConnectionNode(ip_connection) = which_node {
-            Some(ip_connection)
-        } else {
-            None
-        }
-    }
-
-    pub fn as_mut_ip_connection(&mut self) -> Option<&mut IpConnection> {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => return None,
-        };
-
-        if let WhichNode::IpConnectionNode(ref mut ip_connection) = which_node {
-            Some(ip_connection)
-        } else {
-            None
+    pub fn as_mut_inner_nodet<'a>(& 'a mut self) -> Box<& 'a mut dyn NodeT> {
+        match &mut self.which_node {
+            Some(WhichNode::IpAddressNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::IpPortNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::AssetNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::FileNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessInboundConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::ProcessOutboundConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::NetworkConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::IpConnectionNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::DynamicNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            None => panic!("No NodeT implementation listed for given node type!")
         }
     }
 
@@ -527,198 +305,35 @@ impl Node {
 
 impl NodeT for Node {
     fn get_asset_id(&self) -> Option<&str> {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => {
-                warn!("Failed to determine variant of node");
-                return None;
-            }
-        };
-
-        match which_node {
-            WhichNode::AssetNode(asset_node) => asset_node.get_asset_id(),
-            WhichNode::ProcessNode(process_node) => process_node.get_asset_id(),
-            WhichNode::FileNode(file_node) => file_node.get_asset_id(),
-            WhichNode::IpAddressNode(ip_address_node) => ip_address_node.get_asset_id(),
-            WhichNode::ProcessOutboundConnectionNode(process_outbound_connection_node) => {
-                process_outbound_connection_node.get_asset_id()
-            }
-            WhichNode::ProcessInboundConnectionNode(process_inbound_connection_node) => {
-                process_inbound_connection_node.get_asset_id()
-            }
-            WhichNode::IpPortNode(ip_port_node) => ip_port_node.get_asset_id(),
-            WhichNode::NetworkConnectionNode(network_connection_node) => {
-                network_connection_node.get_asset_id()
-            }
-            WhichNode::IpConnectionNode(ip_connection_node) => ip_connection_node.get_asset_id(),
-            WhichNode::DynamicNode(dynamic_node) => dynamic_node.get_asset_id(),
-        }
+      self.as_inner_nodet().get_asset_id()
     }
 
-    fn set_asset_id(&mut self, asset_id: impl Into<String>) {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => {
-                warn!("Failed to determine variant of node");
-                return;
-            }
-        };
+    fn clone_asset_id(&self) -> Option<String> {
+        self.get_asset_id().map(String::from)
+    }
 
-        match which_node {
-            WhichNode::AssetNode(ref mut asset_node) => asset_node.set_asset_id(asset_id.into()),
-            WhichNode::ProcessNode(ref mut process_node) => {
-                process_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::FileNode(ref mut file_node) => file_node.set_asset_id(asset_id.into()),
-            WhichNode::IpAddressNode(ref mut ip_address_node) => {
-                ip_address_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::ProcessOutboundConnectionNode(ref mut process_outbound_connection_node) => {
-                process_outbound_connection_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::ProcessInboundConnectionNode(ref mut process_inbound_connection_node) => {
-                process_inbound_connection_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::IpPortNode(ref mut ip_port_node) => {
-                ip_port_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::NetworkConnectionNode(ref mut network_connection_node) => {
-                network_connection_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::IpConnectionNode(ip_connection_node) => {
-                ip_connection_node.set_asset_id(asset_id.into())
-            }
-            WhichNode::DynamicNode(ref mut dynamic_node) => {
-                dynamic_node.set_asset_id(asset_id.into())
-            }
-        }
+    fn set_asset_id(&mut self, asset_id: String) {
+      self.as_mut_inner_nodet().set_asset_id(asset_id)
     }
 
     fn create_static_node_key(&self) -> Option<String> {
-        match &self.which_node {
-            Some(WhichNode::AssetNode(asset_node)) => asset_node.create_static_node_key(),
-            Some(WhichNode::ProcessNode(process_node)) => process_node.create_static_node_key(),
-            Some(WhichNode::FileNode(file_node)) => file_node.create_static_node_key(),
-            Some(WhichNode::IpAddressNode(ip_address_node)) => ip_address_node.create_static_node_key(),
-            Some(WhichNode::ProcessOutboundConnectionNode(process_outbound_connection_node)) => {
-                process_outbound_connection_node.create_static_node_key()
-            }
-            Some(WhichNode::ProcessInboundConnectionNode(process_inbound_connection_node)) => {
-                process_inbound_connection_node.create_static_node_key()
-            }
-            Some(WhichNode::IpPortNode(ip_port_node)) => ip_port_node.create_static_node_key(),
-            Some(WhichNode::NetworkConnectionNode(network_connection_node)) => {
-                network_connection_node.create_static_node_key()
-            }
-            Some(WhichNode::IpConnectionNode(ip_connection_node)) => ip_connection_node.create_static_node_key(),
-            Some(WhichNode::DynamicNode(dynamic_node)) => dynamic_node.create_static_node_key(),
-            None => panic!("Failed to determine variant of node"),
-        }
+      self.as_inner_nodet().create_static_node_key()
     }
 
     fn get_node_key(&self) -> &str {
-        let which_node = match self.which_node {
-            Some(ref which_node) => which_node,
-            None => {
-                panic!("Failed to determine variant of node");
-            }
-        };
-
-        match which_node {
-            WhichNode::AssetNode(asset_node) => asset_node.get_node_key(),
-            WhichNode::ProcessNode(process_node) => process_node.get_node_key(),
-            WhichNode::FileNode(file_node) => file_node.get_node_key(),
-            WhichNode::IpAddressNode(ip_address_node) => ip_address_node.get_node_key(),
-            WhichNode::ProcessOutboundConnectionNode(process_outbound_connection_node) => {
-                process_outbound_connection_node.get_node_key()
-            }
-            WhichNode::ProcessInboundConnectionNode(process_inbound_connection_node) => {
-                process_inbound_connection_node.get_node_key()
-            }
-            WhichNode::IpPortNode(ip_port_node) => ip_port_node.get_node_key(),
-            WhichNode::NetworkConnectionNode(network_connection_node) => {
-                network_connection_node.get_node_key()
-            }
-            WhichNode::IpConnectionNode(ip_connection_node) => ip_connection_node.get_node_key(),
-            WhichNode::DynamicNode(dynamic_node) => dynamic_node.get_node_key(),
-        }
+      self.as_inner_nodet().get_node_key()
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
-        let which_node = match self.which_node {
-            Some(ref mut which_node) => which_node,
-            None => {
-                warn!("Failed to determine variant of node");
-                return;
-            }
-        };
-
-        match which_node {
-            WhichNode::AssetNode(ref mut asset_node) => asset_node.set_node_key(node_key.into()),
-            WhichNode::ProcessNode(ref mut process_node) => {
-                process_node.set_node_key(node_key.into())
-            }
-            WhichNode::FileNode(ref mut file_node) => file_node.set_node_key(node_key.into()),
-            WhichNode::IpAddressNode(ref mut ip_address_node) => {
-                ip_address_node.set_node_key(node_key.into())
-            }
-            WhichNode::ProcessOutboundConnectionNode(ref mut process_outbound_connection_node) => {
-                process_outbound_connection_node.set_node_key(node_key.into())
-            }
-            WhichNode::ProcessInboundConnectionNode(ref mut process_inbound_connection_node) => {
-                process_inbound_connection_node.set_node_key(node_key.into())
-            }
-            WhichNode::IpPortNode(ref mut ip_port_node) => {
-                ip_port_node.set_node_key(node_key.into())
-            }
-            WhichNode::NetworkConnectionNode(ref mut network_connection_node) => {
-                network_connection_node.set_node_key(node_key.into())
-            }
-            WhichNode::IpConnectionNode(ip_connection_node) => {
-                ip_connection_node.set_node_key(node_key.into())
-            }
-            WhichNode::DynamicNode(ref mut dynamic_node) => {
-                dynamic_node.set_node_key(node_key.into())
-            }
-        }
+    fn set_node_key(&mut self, node_key: String) {
+      self.as_mut_inner_nodet().set_node_key(node_key)
     }
 
     fn into_unid_session(&self) -> Result<Option<UnidSession>, Error> {
-        match &self.which_node {
-            Some(WhichNode::ProcessNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::FileNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::ProcessOutboundConnectionNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::ProcessInboundConnectionNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::NetworkConnectionNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::IpConnectionNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::IpAddressNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::AssetNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::IpPortNode(node)) => {
-                node.into_unid_session()
-            }
-            Some(WhichNode::DynamicNode(node)) => {
-                node.into_unid_session()
-            }
-            None => bail!("Failed to determine node type & its UnidSession"),
-        }
+      self.as_inner_nodet().into_unid_session()
     }
+}
 
+impl MergeableNodeT for Node {
     fn merge(&mut self, other: &Self) -> bool {
         let which_node = match self.which_node {
             Some(ref mut which_node) => which_node,

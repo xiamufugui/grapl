@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use crate::sessions::UnidSession;
 
 use crate::graph_description::IpAddress;
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 impl IpAddress {
     pub fn new(
@@ -46,7 +46,7 @@ impl NodeT for IpAddress {
         None
     }
 
-    fn set_asset_id(&mut self, _asset_id: impl Into<String>) {
+    fn set_asset_id(&mut self, _asset_id: String) {
         panic!("Can not set asset_id on IpAddress");
     }
 
@@ -58,15 +58,17 @@ impl NodeT for IpAddress {
         &self.node_key
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
-        self.node_key = node_key.into();
+    fn set_node_key(&mut self, node_key: String) {
+        self.node_key = node_key;
     }
 
     fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
         // Trivial case, no unid session.
         Ok(None)
     }
+}
 
+impl MergeableNodeT for IpAddress {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!("Attempted to merge two IpAddress Nodes with differing node_keys");

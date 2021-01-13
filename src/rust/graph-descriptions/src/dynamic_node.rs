@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 use crate::sessions::UnidSession;
 
 use crate::graph_description::{id_strategy, node_property, DynamicNode, IdStrategy, NodeProperty};
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 impl DynamicNode {
     pub fn get_property(&self, name: impl AsRef<str>) -> Option<&NodeProperty> {
@@ -73,8 +73,8 @@ impl NodeT for DynamicNode {
         self.asset_id.as_ref().map(String::as_str)
     }
 
-    fn set_asset_id(&mut self, asset_id: impl Into<String>) {
-        self.asset_id = Some(asset_id.into());
+    fn set_asset_id(&mut self, asset_id: String) {
+        self.asset_id = Some(asset_id);
     }
 
     fn create_static_node_key(&self) -> Option<String> {
@@ -85,15 +85,17 @@ impl NodeT for DynamicNode {
         self.node_key.as_str()
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
-        self.node_key = node_key.into();
+    fn set_node_key(&mut self, node_key: String) {
+        self.node_key = node_key;
     }
 
     fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
         // Trivial case, no unid session.
         Ok(None)
     }
+}
 
+impl MergeableNodeT for DynamicNode {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!("Attempted to merge two NetworkConnection Nodes with differing node_keys");

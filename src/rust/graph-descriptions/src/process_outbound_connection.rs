@@ -8,7 +8,7 @@ use crate::sessions::UnidSession;
 
 use crate::error::Error;
 use crate::graph_description::ProcessOutboundConnection;
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 pub enum ProcessOutboundConnectionState {
     Connected,
@@ -102,8 +102,8 @@ impl NodeT for ProcessOutboundConnection {
         self.asset_id.as_ref().map(String::as_str)
     }
 
-    fn set_asset_id(&mut self, asset_id: impl Into<String>) {
-        self.asset_id = Some(asset_id.into());
+    fn set_asset_id(&mut self, asset_id: String) {
+        self.asset_id = Some(asset_id);
     }
 
     fn create_static_node_key(&self) -> Option<String> {
@@ -114,8 +114,8 @@ impl NodeT for ProcessOutboundConnection {
         &self.node_key
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
-        self.node_key = node_key.into();
+    fn set_node_key(&mut self, node_key: String) {
+        self.node_key = node_key;
     }
 
     fn into_unid_session(&self) -> Result<Option<UnidSession>, failure::Error> {
@@ -136,7 +136,9 @@ impl NodeT for ProcessOutboundConnection {
                         is_creation,
         }))
     }
+}
 
+impl MergeableNodeT for ProcessOutboundConnection {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!(

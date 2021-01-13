@@ -1,5 +1,5 @@
 use crate::graph_description::Asset;
-use crate::node::NodeT;
+use crate::node::{ NodeT, MergeableNodeT };
 
 use crate::sessions::UnidSession;
 
@@ -65,7 +65,7 @@ impl NodeT for Asset {
         self.asset_id.as_ref().map(|asset_id| asset_id.as_str())
     }
 
-    fn set_asset_id(&mut self, asset_id: impl Into<String>) {
+    fn set_asset_id(&mut self, asset_id: String) {
         self.asset_id = Some(asset_id.into());
     }
 
@@ -77,7 +77,7 @@ impl NodeT for Asset {
         &self.node_key
     }
 
-    fn set_node_key(&mut self, node_key: impl Into<String>) {
+    fn set_node_key(&mut self, node_key: String) {
         self.node_key = node_key.into();
     }
 
@@ -85,7 +85,9 @@ impl NodeT for Asset {
         // Trivial case, no unid session.
         Ok(None)
     }
+}
 
+impl MergeableNodeT for Asset {
     fn merge(&mut self, other: &Self) -> bool {
         if self.node_key != other.node_key {
             warn!("Attempted to merge two Asset Nodes with differing node_keys");
