@@ -21,6 +21,7 @@ pub mod node;
 pub mod process;
 pub mod process_inbound_connection;
 pub mod process_outbound_connection;
+pub mod unit;
 
 pub mod sessions;
 

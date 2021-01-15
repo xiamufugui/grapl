@@ -52,7 +52,14 @@ message Node {
         NetworkConnection network_connection_node = 8;
         IpConnection ip_connection_node = 9;
         DynamicNode dynamic_node = 10;
+        Unit unit_node = 11;
     }
+}
+
+// Unit is an example type for testing.  It has no fields beyond
+// the minimum required to function with grapl.
+message Unit {
+    string node_key = 1;
 }
 
 message Asset {

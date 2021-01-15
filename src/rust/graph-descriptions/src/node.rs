@@ -8,9 +8,44 @@ use crate::graph_description::IdStrategy;
 use crate::graph_description::node::WhichNode;
 use crate::graph_description::{
     Asset, DynamicNode, File, IpAddress, IpConnection, IpPort, NetworkConnection, Node, Process,
-    ProcessInboundConnection, ProcessOutboundConnection,
+    ProcessInboundConnection, ProcessOutboundConnection, Unit
 };
 
+/// A Node contains a WhichNode, which implements NodeT:
+///
+/// Node {
+///   WhichNode: NodeT
+/// }
+///
+/// You can access WhichNode statically, by using a match arm on WhichNode,
+/// or dynamically, by referencing the underlying type as a NodeT:
+///
+/// ```
+/// use grapl_graph_descriptions::graph_description::{ Unit, Node };
+/// use grapl_graph_descriptions::graph_description::node::WhichNode::UnitNode;
+/// use grapl_graph_descriptions::node::NodeT;
+///
+/// // Create a dummy node & specify its node key
+/// // Unit implements NodeT
+/// let node_key = String::from("abc");
+/// let inner_node = Unit { node_key: node_key.clone() };
+///
+/// // Create a Node from the UnitNode
+/// let mut node: Node = inner_node.into();
+///
+/// // Statically access the node_key via enum match:
+/// if let Some(UnitNode(mut inner_node)) = node.clone().which_node {
+///   inner_node.set_asset_id(String::from("my asset"));
+///   let unid_session = inner_node.into_unid_session();
+///   assert_eq!(inner_node.get_node_key(), node_key.clone());
+/// }
+///
+/// // Dynamically access the node_key via the NodeT interface:
+/// let mut node_t = node.as_mut_inner_nodet();
+/// node_t.set_asset_id(String::from("dummy"));
+/// let unid_session = node_t.into_unid_session();
+/// assert_eq!(node_t.get_node_key(), node_key.clone());
+/// ```
 pub trait NodeT {
     fn get_asset_id(&self) -> Option<&str>;
 
@@ -33,6 +68,29 @@ pub trait NodeT {
     fn into_unid_session(&self) -> Result<Option<UnidSession>, Error>;
 }
 
+/// Two nodes can be merged, if they're the same type.
+/// This is implemented with static dispatch, so for any type implementing
+/// MergeableNodeT, it has compile-time knowledge of its operand.
+///
+/// fn merge(my_concrete type) -> my_concrete_type
+///
+/// This is a separate trait from NodeT, because a NodeT trait does not know
+/// its underlying type, so it cannot statically ensure that its operand
+/// is the same type as Self.
+///
+/// ```
+/// use grapl_graph_descriptions::graph_description::{ Unit, Node };
+/// use crate::grapl_graph_descriptions::node::MergeableNodeT;
+///
+/// // Create two dummy nodes
+/// // Unit implements NodeT
+/// let node_key = String::from("abc");
+/// let mut node_a = Unit { node_key: node_key.clone() };
+/// let node_b = Unit { node_key: node_key.clone() };
+///
+/// // Unit.merge knows it's getting a Unit argument:
+/// node_a.merge(&node_b);
+/// ```
 pub trait MergeableNodeT {
     fn merge(&mut self, other: &Self) -> bool;
 
@@ -123,6 +181,14 @@ impl From<DynamicNode> for Node {
     }
 }
 
+impl From<Unit> for Node {
+    fn from(unit: Unit) -> Self {
+        Self {
+            which_node: Some(WhichNode::UnitNode(unit)),
+        }
+    }
+}
+
 impl Node {
     pub fn into_inner_nodet(self) -> Box<dyn NodeT> {
         match self.which_node {
@@ -154,6 +220,9 @@ impl Node {
                 Box::new(inner_node)
             }
             Some(WhichNode::DynamicNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::UnitNode(inner_node)) => {
                 Box::new(inner_node)
             }
             None => panic!("No NodeT implementation listed for given node type!")
@@ -192,6 +261,9 @@ impl Node {
             Some(WhichNode::DynamicNode(inner_node)) => {
                 Box::new(inner_node)
             }
+            Some(WhichNode::UnitNode(inner_node)) => {
+                Box::new(inner_node)
+            }
             None => panic!("No NodeT implementation listed for given node type!")
         }
     }
@@ -226,6 +298,9 @@ impl Node {
                 Box::new(inner_node)
             }
             Some(WhichNode::DynamicNode(inner_node)) => {
+                Box::new(inner_node)
+            }
+            Some(WhichNode::UnitNode(inner_node)) => {
                 Box::new(inner_node)
             }
             None => panic!("No NodeT implementation listed for given node type!")
@@ -299,6 +374,7 @@ impl Node {
             }
             WhichNode::IpConnectionNode(ip_connection_node) => ip_connection_node.into_json(),
             WhichNode::DynamicNode(dynamic_node) => dynamic_node.into_json(),
+            WhichNode::UnitNode(unit_node) => unit_node.into_json(),
         }
     }
 }
@@ -427,6 +503,14 @@ impl MergeableNodeT for Node {
                     false
                 }
             }
+            WhichNode::UnitNode(unit_node) => {
+                if let Some(WhichNode::UnitNode(ref other)) = other.which_node {
+                    unit_node.merge(other)
+                } else {
+                    warn!("Attempted to merge UnitNode with non-UnitNode ");
+                    false
+                }
+            }
         }
     }
 
@@ -519,6 +603,14 @@ impl MergeableNodeT for Node {
                     dynamic_node.merge_into(other)
                 } else {
                     warn!("Attempted to merge DynamicNode with non-DynamicNode ");
+                    false
+                }
+            }
+            WhichNode::UnitNode(ref mut unit_node) => {
+                if let Some(WhichNode::UnitNode(other)) = other.which_node {
+                    unit_node.merge_into(other)
+                } else {
+                    warn!("Attempted to merge UnitNode with non-UnitNode ");
                     false
                 }
             }
