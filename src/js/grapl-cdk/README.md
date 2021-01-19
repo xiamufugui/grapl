@@ -13,29 +13,35 @@ Install the following dependencies:
 
 1. Node
 2. Typescript
-3. AWS CDK -- `yarn install -g aws-cdk@1.71.0`
-4. AWS CLI -- `pip install awscli`
+3. AWS CDK -- `yarn global add aws-cdk`
+4. AWS CLI -- Follow instructions for your operating system: [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
 
 ### AWS Credentials
 
 Make sure your `~/.aws/credentials` file contains the proper AWS
-credentials.
+credentials. You can find this by clicking "Command line or programmatic access" next to your sandbox name. 
 
 ### Grapl deployment artifacts
 
-There are two options for obtaining deployment artifacts. One is to
+There are two options for obtaining deployment artifacts:
+-  One is to
 execute a Grapl build locally and extract artifacts from the build
-containers. Another is to download pre-built release artifacts from
+containers
+- The other is to download pre-built release artifacts from
 Github.
 
 #### Downloading pre-built release artifacts from Github
 
-Navigate to https://github.com/grapl-security/grapl/releases and find
-the git tag associated with the latest release. Then `cd
-src/js/grapl-cdk` and run 
+- Navigate to https://github.com/grapl-security/grapl/releases 
+- Find the git tag associated with the latest release
+
+- Then `cd src/js/grapl-cdk` 
+
+- Run 
 `python3 fetch_zips_by_tag.py --version $VERSION --channel $CHANNEL`
 where `$VERSION` is the appropriate git release tag (i.e. 'v0.1.2') 
-and `$CHANNEL` is the build channel - for most users, 'latest`.
+and `$CHANNEL` is the build channel - for most users, `latest`.
+
 The script will download all the release artifacts to the `zips/` directory.
 
 #### Executing a Grapl build and extracting release artifacts
@@ -46,15 +52,17 @@ To execute a local Grapl build, run the following in Grapl's root:
 TAG=$GRAPL_VERSION GRAPL_RELEASE_TARGET=release dobi --no-bind-mount build
 ```
 
-Then extract the deployment artifacts from the build containers with
+`cd src/js/grapl-cdk`
+
+Then extract the deployment artifacts from the build containers by running
 the following script:
+
+Note: `GRAPL_VERSION` can be any name you want. Just make note of it, we'll
+use it in the next step.
 
 ```bash
 VERSION=$GRAPL_VERSION ./extract-grapl-deployment-artifacts.sh
 ```
-
-`GRAPL_VERSION` can be any name you want. Just make note of it, we'll
-use it in the next step.
 
 Your build outputs should appear in the `zips/` directory.
 
@@ -74,7 +82,7 @@ can be found in `bin/deployment_parameters.ts`:
 
     env: `GRAPL_CDK_DEPLOYMENT_NAME`
 
-2. `graplVersion`
+2. `graplVersion` (required)
 
     The version of Grapl to deploy. This string will be used to look
     for the appropriate filenames in the `zips/` directory.
@@ -83,25 +91,30 @@ can be found in `bin/deployment_parameters.ts`:
 
     env: `GRAPL_VERSION`
 
-3. `watchfulEmail` (optional)
+3. DGraph Instance Type (required)
+
+    env: `GRAPL_DGRAPH_INSTANCE_TYPE`
+
+4. `watchfulEmail` (optional)
 
     Setting this enables [Watchful](https://github.com/eladb/cdk-watchful) for
     monitoring Grapl with email alerts.
 
     env: `GRAPL_CDK_WATCHFUL_EMAIL`
 
-4. `operationalAlarmsEmail` (optional)
+5. `operationalAlarmsEmail` (optional)
 
     Setting this enables alarms meant for the operator of the Grapl stack.
 
     env: `GRAPL_CDK_OPERATIONAL_ALARMS_EMAIL`
 
-5. `securityAlarmsEmail` (optional)
+6. `securityAlarmsEmail` (optional)
 
     Setting this enables alarms meant for the consumer of the Grapl
     stack, for example, "a new risk node has been found".
 
     env: `GRAPL_CDK_SECURITY_ALARMS_EMAIL`
+
 
 Alternatively, these can be set via the environment variables
 mentioned for each above. The environment variables take precedence
@@ -139,18 +152,25 @@ install DGraph on it.
 To provision DGraph:
 
 1. Navigate to the [AWS Autoscaling
-   console](https://console.aws.amazon.com/ec2autoscaling) and click
-   on the Swarm Autoscaling group. Click *Edit* in the *Group Details*
-   pane and set *Desired capacity*, *Minimum capacity*, and *Maximum
-   capacity* all to 0. Wait for the cluster to scale down to zero
-   instances. Then set *Desired capacity*, *Minimum capacity*, and
+   console](https://console.aws.amazon.com/ec2autoscaling). Click
+   the checkbox next to the Swarm Autoscaling group. 
+   
+   - Click *Edit* in the *Group Details*
+   pane. 
+   - Set *Desired capacity*, *Minimum capacity*, and *Maximum
+   capacity* all to 0. 
+   - Click the *Update Button* and wait for the cluster to scale down to zero
+   instances.
+   -  Then set *Desired capacity*, *Minimum capacity*, and
    *Maximum capacity* all to 3. Wait for the cluster to scale up to 3
    instances.
 
 2. Navigate to the [AWS Route53 Hosted Zones
    console](https://console.aws.amazon.com/route53/v2/hostedzones) and
    click on the hosted zone with *Domain name* ending in
-   `.dgraph.grapl`. Wait until you see a DNS record of *Type* A appear
+   `.dgraph.grapl`.
+   
+   -  Wait until you see a DNS record of *Type* A appear
    in the list of *Records*. It may take a few minutes and you may
    have to click the refresh button. Ensure that the IP addresses
    associated with the A record are the private IP addresses of the
@@ -159,7 +179,9 @@ To provision DGraph:
 3. `cd src/js/grapl-cdk/swarm` and run `python3 swarm_setup.py
    $GRAPL_DEPLOY_NAME` where `$GRAPL_DEPLOY_NAME` is the same
    `deployName` you configured above in
-   `src/js/grapl-cdk/bin/deployment_parameters.ts`. This script will
+   `src/js/grapl-cdk/bin/deployment_parameters.ts`.
+   
+   - This script will
    output logs to the console indicating which instance is the swarm
    manager. It will also output logs containing the hostname of each
    swarm instance.  You will need these in subsequent steps.

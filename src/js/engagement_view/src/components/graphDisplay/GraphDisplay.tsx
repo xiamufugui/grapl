@@ -368,7 +368,6 @@ const GraphDisplay = ({lensName, setCurNode}: GraphDisplayProps) => {
 
                     ctx.font = `${fontSize}px Arial`;
 
-
                     const textWidth = ctx.measureText(label).width;
 
                     const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
