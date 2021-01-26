@@ -228,7 +228,6 @@ image=grapl-analyzerlib-build:
   depends:
     - python-build
     - graph-descriptions-build
-    - grapl-common-build
   tags:
     - latest
 
@@ -265,8 +264,8 @@ image=analyzer-deployer:
 
 image=analyzer-executor-build:
   image: grapl/analyzer-executor-build
-  context: src/python/analyzer_executor/
-  dockerfile: Dockerfile
+  context: src/python/
+  dockerfile: analyzer_executor.Dockerfile
   target: analyzer-executor-build
   depends:
     - python-build
@@ -287,8 +286,8 @@ image=analyzer-executor-test:
 
 image=analyzer-executor:
   image: grapl/grapl-analyzer-executor
-  context: src/python/analyzer_executor/
-  dockerfile: Dockerfile
+  context: src/python/
+  dockerfile: analyzer_executor.Dockerfile
   target: grapl-analyzer-executor
   depends:
     - analyzer-executor-build
