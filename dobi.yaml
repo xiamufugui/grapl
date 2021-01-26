@@ -210,8 +210,8 @@ image=grapl-common-test:
 
 image=grapl-tests-common-build:
   image: grapl/grapl-tests-common-python-build
-  context: src/python/grapl-tests-common/
-  dockerfile: Dockerfile
+  context: src/python/
+  dockerfile: grapl-tests-common.Dockerfile
   target: grapl-tests-common-python-build
   depends:
     - grapl-analyzerlib-build

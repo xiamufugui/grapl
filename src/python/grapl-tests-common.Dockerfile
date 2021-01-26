@@ -10,8 +10,13 @@ COPY --from=grapl/python-test-deps /home/grapl/python_test_deps python_test_deps
 RUN /bin/bash -c "python_test_deps/install_requirements.sh"
 
 # Install this library into the venv
-COPY --chown=grapl . grapl-tests-common
+COPY --chown=grapl grapl-tests-common grapl-tests-common
 RUN /bin/bash -c "source venv/bin/activate && cd grapl-tests-common && pip install ."
 RUN /bin/bash -c "source venv/bin/activate && cd grapl-tests-common && python setup.py sdist bdist_wheel"
+
+# HACK: the common tests actually depend on grapl-common, but this isn't (yet)
+# captured elsewhere.
+COPY --chown=grapl grapl-common grapl-common
+RUN /bin/bash -c "source venv/bin/activate && cd grapl-common && pip install ."
 
 # Consumers of this library should then COPY this venv.
