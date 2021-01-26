@@ -211,6 +211,8 @@ image=grapl-common-test:
 image=grapl-tests-common-build:
   image: grapl/grapl-tests-common-python-build
   context: src/python/
+  # HACK: The Dockerfile needs access to the entire Python source tree at the
+  # moment.
   dockerfile: grapl-tests-common.Dockerfile
   target: grapl-tests-common-python-build
   depends:
@@ -286,7 +288,11 @@ image=analyzer-executor-test:
 
 image=analyzer-executor:
   image: grapl/grapl-analyzer-executor
-  context: src/python/
+  # HACK: The context is src/python because that's where the Dockerfile is. It
+  # doesn't *need* to be that way for this deployment build, but it's a
+  # multi-stage Dockerfile and the build stage *does* need access to the entire
+  # Python source tree.
+  context: src/python
   dockerfile: analyzer_executor.Dockerfile
   target: grapl-analyzer-executor
   depends:
@@ -317,6 +323,10 @@ image=engagement-creator-test:
 
 image=engagement-creator:
   image: grapl/grapl-engagement-creator
+  # HACK: The context is src/python because that's where the Dockerfile is. It
+  # doesn't *need* to be that way for this deployment build, but it's a
+  # multi-stage Dockerfile and the build stage *does* need access to the entire
+  # Python source tree.
   context: src/python/
   dockerfile: engagement-creator.Dockerfile
   target: grapl-engagement-creator
