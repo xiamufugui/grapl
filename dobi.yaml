@@ -297,8 +297,8 @@ image=analyzer-executor:
 
 image=engagement-creator-build:
   image: grapl/engagement-creator-build
-  context: src/python/engagement-creator
-  dockerfile: Dockerfile
+  context: src/python/
+  dockerfile: engagement-creator.Dockerfile
   target: engagement-creator-build
   depends:
     - python-build
@@ -317,8 +317,8 @@ image=engagement-creator-test:
 
 image=engagement-creator:
   image: grapl/grapl-engagement-creator
-  context: src/python/engagement-creator
-  dockerfile: Dockerfile
+  context: src/python/
+  dockerfile: engagement-creator.Dockerfile
   target: grapl-engagement-creator
   depends:
     - engagement-creator-build
